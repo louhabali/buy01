@@ -1,8 +1,8 @@
+server:
+    port: 8081
 spring:
   application:
     name: user_service
-  server:
-    port: 8081
   data:
     mongodb:
       uri: mongodb://localhost:27017/user_service_db
