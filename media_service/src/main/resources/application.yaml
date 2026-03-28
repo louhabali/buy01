@@ -1,3 +1,5 @@
 spring:
   application:
     name: media_service
+  server:
+    port: 8083

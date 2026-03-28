@@ -1,3 +1,5 @@
 spring:
   application:
     name: product_service
+  server:
+    port: 8082
