@@ -3,8 +3,14 @@ package buy01.user_service.controller;
 import buy01.user_service.model.Role;
 import buy01.user_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+
 import org.springframework.web.bind.annotation.*;
 
+import com.mongodb.lang.NonNull;;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -13,7 +19,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
+    public String register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request.getUsername(), request.getEmail(),
                 request.getPassword(), request.getRole());
     }
@@ -24,10 +30,17 @@ public class AuthController {
     }
 
     static class RegisterRequest {
+        @NotEmpty(message = "Username is required")
+        @Pattern(regexp = "^[a-zA-Z0-9_]{3,20}$", message = "Username must be between 3 and 20 characters and contain only letters, numbers, and underscores")
         private String username;
+        @Email(message = "Invalid email format")
+        @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Invalid email format")
         private String email;
+        @NotEmpty(message = "Password is required")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,}$", message = "Password must be at least 4 characters long and contain at least one letter and one number")
         private String password;
         private String avatar;
+        @NonNull
         private Role role;
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
@@ -42,7 +55,10 @@ public class AuthController {
     }
 
     static class LoginRequest {
+        @NotEmpty(message = "Email is required")
+        @Email(message = "Invalid email format")
         private String email;
+        @NotEmpty(message = "Password is required")
         private String password;
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }

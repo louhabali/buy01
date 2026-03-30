@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.mongodb.DuplicateKeyException;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -17,18 +19,22 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public String register(String username, String email, String password, Role role) {
-        if (userRepository.existsByEmail(email)) {
+        String cleanEmail = email.toLowerCase().trim();
+        if (userRepository.existsByEmail(cleanEmail)) {
             throw new RuntimeException("Email already exists");
         }
-
+        Role checkedRole = (role == Role.SELLER) ? Role.SELLER : Role.CLIENT;
         User user = User.builder()
                 .username(username)
-                .email(email)
+                .email(cleanEmail)
                 .password(passwordEncoder.encode(password))
-                .role(role)
+                .role(checkedRole)
                 .build();
-
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DuplicateKeyException e) {
+            throw new RuntimeException("Email or username already exists");
+        }
 
         return jwtUtil.generateToken(user.getId(), user.getRole().name());
     }

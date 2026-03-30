@@ -1,5 +1,7 @@
 package buy01.user_service.security;
+
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,14 +20,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            String token = authHeader.substring(7).trim();
 
             try {
                 Claims claims = Jwts.parser()
@@ -36,23 +38,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String userId = claims.getSubject();
                 String role = claims.get("role", String.class);
 
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                Collections.singleton(() -> role)
-                        );
+                if (!"CLIENT".equals(role) && !"SELLER".equals(role)) {
+                    throw new JwtException("Invalid role in token");
+                }
+
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        Collections.singleton(() -> role));
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                throw new JwtException("Token expired");
+            } catch (io.jsonwebtoken.MalformedJwtException e) {
+                throw new JwtException("Malformed token");
+            } catch (io.jsonwebtoken.SignatureException e) {
+                throw new JwtException("Invalid token signature");
             } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+                throw new JwtException("Unauthorized: " + e.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
     }
-
-  
 }
