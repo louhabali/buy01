@@ -1,10 +1,16 @@
 package buy01.user_service.service;
 
+import buy01.user_service.exceptions.BadRequestException;
 import buy01.user_service.model.Role;
 import buy01.user_service.model.User;
 import buy01.user_service.repo.UserRepository;
 import buy01.user_service.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +24,12 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public String register(String username, String email, String password, Role role) {
+    public Map<String, Object> register(String username, String email, String password, Role role) {
         String cleanEmail = email.toLowerCase().trim();
-        if (userRepository.existsByEmail(cleanEmail)) {
-            throw new RuntimeException("Email already exists");
+        if (userRepository.findByEmail(cleanEmail).isPresent()) {
+            throw new BadRequestException("Email already exists");
+        }else if (userRepository.findByUsername(username).isPresent()) {
+            throw new BadRequestException("Username already exists");
         }
         Role checkedRole = (role == Role.SELLER) ? Role.SELLER : Role.CLIENT;
         User user = User.builder()
@@ -33,20 +41,29 @@ public class AuthService {
         try {
             userRepository.save(user);
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException("Email or username already exists");
+            throw new BadRequestException("Email or username already exists");
         }
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User registered successfully");
 
-        return jwtUtil.generateToken(user.getId(), user.getRole().name());
+        return response;
+
     }
 
-    public String login(String email, String password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+    public Map<String, Object> login(String email, String password) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new BadRequestException("User not found");
         }
-
-        return jwtUtil.generateToken(user.getId(), user.getRole().name());
+        if (!passwordEncoder.matches(password, user.get().getPassword())) {
+            throw new BadRequestException("Invalid password");
+        }
+        String token = jwtUtil.generateToken(user.get().getId(), user.get().getRole().name());
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Login successful");
+        response.put("token", token);
+        return response;
     }
 }

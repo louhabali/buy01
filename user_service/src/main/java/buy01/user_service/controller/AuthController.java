@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.*;
 
 import com.mongodb.lang.NonNull;;
@@ -19,13 +21,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public String register(@Valid @RequestBody RegisterRequest request) {
+    public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request.getUsername(), request.getEmail(),
                 request.getPassword(), request.getRole());
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public Map<String, Object>  login(@RequestBody LoginRequest request) {
         return authService.login(request.getEmail(), request.getPassword());
     }
 
