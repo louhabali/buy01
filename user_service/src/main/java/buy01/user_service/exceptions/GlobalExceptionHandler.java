@@ -7,9 +7,12 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import io.jsonwebtoken.JwtException;
 
@@ -67,6 +70,26 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    // Handle resource not found exceptions 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<String> handleResourceNotFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found.");
+    }
+
+    // Handle route not found exceptions 404 (for invalid endpoints)
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<String> handleNoHandlerFound(NoHandlerFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("The requested route " + ex.getRequestURL() + " was not found.");
+    }
+
+    // Handle method not allowed 405
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<String> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body("HTTP method " + ex.getMethod() + " is not allowed for this endpoint.");
+    }
+
     // Catch-all for unexpected exceptions 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAll(Exception ex) {
@@ -76,5 +99,4 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Something went wrong. Please try again later.");
     }
-
 }
