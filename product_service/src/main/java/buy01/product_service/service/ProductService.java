@@ -30,7 +30,7 @@ public class ProductService {
                 .build();
                 productRepository.save(product);
                 
-        System.out.println("####################################");
+        // System.out.println("####################################");
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Product created successfully");
