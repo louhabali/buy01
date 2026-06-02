@@ -13,9 +13,9 @@ import org.springframework.data.mongodb.core.index.Indexed;
 public class Product {
     @Id
     private String id;
-    @Indexed(unique = true)
+    // @Indexed(unique = true)
     private String name;
-    @Indexed(unique = true)
+    // @Indexed(unique = true)
     private Float price;
     private String sellerId;
     private String[] imageUrls; 
