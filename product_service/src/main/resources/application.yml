@@ -9,6 +9,11 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/product_db
 
+  web:
+    resources:
+      static-locations:
+        - file:uploads/
+
 management:
   endpoints:
     web:

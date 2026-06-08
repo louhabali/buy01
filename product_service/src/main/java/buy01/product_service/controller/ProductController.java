@@ -1,22 +1,10 @@
 package buy01.product_service.controller;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
-
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.*;
-
-import com.mongodb.lang.NonNull;
-
-import buy01.product_service.ProductServiceApplication;
 import buy01.product_service.model.Product;
-import buy01.product_service.service.ProductService;;
+import buy01.product_service.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/products")
@@ -25,22 +13,18 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping
-    public Map<String, Object> addProduct(@Valid @RequestBody ProductRequest request) {
-        return productService.createProduct(request.getName(), request.getPrice(),
-                request.getSellerId(), request.getImageUrls());
-    }
+    @PostMapping(consumes = "multipart/form-data")
+    public Product addProduct(
+            @RequestParam String name,
+            @RequestParam Float price,
+            @RequestParam String sellerId,
+            @RequestParam(required = false) MultipartFile[] images) {
 
-    @Getter
-    @Setter
-    static class ProductRequest {
-        @NotEmpty(message = "name is required")
-        private String name;
-        private Float price;
-        @NotEmpty(message = "Seller id is required")
-        private String sellerId;
-        private String[] imageUrls;
-        
+        return productService.createProduct(
+                name,
+                price,
+                sellerId,
+                images
+        );
     }
-
 }
