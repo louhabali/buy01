@@ -20,5 +20,6 @@ public class Product {
 
     private String sellerId;
 
-    private String[] imageUrls;
+    // private String[] imageUrls;
+    private List<String> imageUrls;
 }
