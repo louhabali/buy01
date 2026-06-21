@@ -3,13 +3,15 @@ package buy01.product_service.service;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +22,12 @@ public class ProductService {
     public Product createProduct(
             String name,
             Float price,
-            String sellerId,
             MultipartFile[] images) {
 
-        String[] imagePaths = null;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String sellerId = auth.getName();
+
+        List<String> imageUrls = new ArrayList<>();
 
         try {
 
@@ -35,30 +39,25 @@ public class ProductService {
                     Files.createDirectories(uploadDir);
                 }
 
-                imagePaths = new String[images.length];
-
-                for (int i = 0; i < images.length; i++) {
-
-                    MultipartFile image = images[i];
+                for (MultipartFile image : images) {
 
                     String fileName =
                             System.currentTimeMillis()
-                                    + "_"
-                                    + image.getOriginalFilename();
+                                    + "_" + image.getOriginalFilename();
 
                     Path filePath = uploadDir.resolve(fileName);
 
                     image.transferTo(filePath);
 
-                    imagePaths[i] = "/uploads/" + fileName;
+                    imageUrls.add("/uploads/" + fileName);
                 }
             }
 
             Product product = Product.builder()
                     .name(name.trim())
                     .price(price)
-                    .sellerId(sellerId.trim())
-                    .imageUrls(imagePaths)
+                    .sellerId(sellerId)
+                    .imageUrls(imageUrls)
                     .build();
 
             return productRepository.save(product);
@@ -67,23 +66,4 @@ public class ProductService {
             throw new RuntimeException("Failed to upload images", e);
         }
     }
-
-    // public Map<String, Object> createProduct(String name, Float price, String sellerId, String[] imageUrls) {
-
-    //     Product product = Product.builder()
-    //             .name(name.trim())
-    //             .price(price)
-    //             .sellerId(sellerId.trim())
-    //             .build();
-    //             productRepository.save(product);
-                
-    //     // System.out.println("####################################");
-    //     Map<String, Object> response = new HashMap<>();
-    //     response.put("success", true);
-    //     response.put("message", "Product created successfully");
-
-    //     return response;
-
-    // }
-
 }

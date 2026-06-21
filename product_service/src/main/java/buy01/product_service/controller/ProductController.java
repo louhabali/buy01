@@ -15,15 +15,17 @@ public class ProductController {
 
     @PostMapping(consumes = "multipart/form-data")
     public Product addProduct(
+            // @RequestHeader("Authorization") String authHeader,
             @RequestParam String name,
             @RequestParam Float price,
-            @RequestParam String sellerId,
+            // @RequestParam String sellerId,
             @RequestParam(required = false) MultipartFile[] images) {
 
         return productService.createProduct(
+                // authHeader,
                 name,
                 price,
-                sellerId,
+                // sellerId,
                 images
         );
     }
