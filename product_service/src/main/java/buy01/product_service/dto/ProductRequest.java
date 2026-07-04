@@ -16,8 +16,8 @@ public class ProductRequest {
     @Positive(message = "price must be positive")
     private Float price;
 
-    @NotBlank(message = "sellerId is required")
-    private String sellerId;
+    // @NotBlank(message = "sellerId is required")
+    // private String sellerId;
 
     private MultipartFile[] images;
 }

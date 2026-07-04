@@ -1,6 +1,10 @@
 server:
   port: 8082
 
+media:
+  service:
+    url: http://localhost:8083
+    
 spring:
   application:
     name: product_service

@@ -1,5 +1,6 @@
 package buy01.product_service.service;
 
+import buy01.product_service.client.MediaClient;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +17,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final MediaClient mediaClient;
 
     public Product createProduct(
             String name,
@@ -26,31 +26,14 @@ public class ProductService {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String sellerId = auth.getName();
+        // String sellerId = "test-seller";
 
         List<String> imageUrls = new ArrayList<>();
 
         try {
 
             if (images != null && images.length > 0) {
-
-                Path uploadDir = Paths.get("uploads");
-
-                if (!Files.exists(uploadDir)) {
-                    Files.createDirectories(uploadDir);
-                }
-
-                for (MultipartFile image : images) {
-
-                    String fileName =
-                            System.currentTimeMillis()
-                                    + "_" + image.getOriginalFilename();
-
-                    Path filePath = uploadDir.resolve(fileName);
-
-                    image.transferTo(filePath);
-
-                    imageUrls.add("/uploads/" + fileName);
-                }
+                imageUrls = mediaClient.uploadImages(images);
             }
 
             Product product = Product.builder()
@@ -62,7 +45,7 @@ public class ProductService {
 
             return productRepository.save(product);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to upload images", e);
         }
     }
