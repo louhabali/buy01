@@ -13,7 +13,7 @@ public class JwtService {
 
     // Minimum 32 characters
     private static final String SECRET_KEY =
-            "mysecretkeymysecretkeymysecretkey123";
+        "mysecretkeymysecretkeymysecretkey123456789012345678901234567890";
 
     private final SecretKey key =
             Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
@@ -33,6 +33,8 @@ public class JwtService {
             extractClaims(token);
             return true;
         } catch (Exception e) {
+            System.out.println(e.getClass().getName());
+    System.out.println(e.getMessage());
             return false;
         }
     }

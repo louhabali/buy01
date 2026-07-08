@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         String token = authHeader.substring(7);
-
+        System.out.println("JWT Token: " + token);
         if (!jwtService.validateToken(token)) {
 
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -55,7 +55,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String username = claims.getSubject();
         String role = claims.get("role", String.class);
         String userId = claims.get("userId", String.class);
-
+        System.out.println("Adding headers:");
+System.out.println("X-User-Id = " + userId);
+System.out.println("X-Username = " + username);
+System.out.println("X-Role = " + role);
         ServerHttpRequest request = exchange.getRequest()
                 .mutate()
                 .header("X-User-Id", userId)
