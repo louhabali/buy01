@@ -18,7 +18,7 @@ public class User {
     @Indexed(unique = true)
     private String email;
     private String password;
-
+    //@Enumerated(EnumType.STRING)
     private Role role;
 
     private String avatarUrl; 

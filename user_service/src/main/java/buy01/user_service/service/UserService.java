@@ -1,5 +1,6 @@
 package buy01.user_service.service;
 
+import buy01.user_service.dto.ProfileResponse;
 import buy01.user_service.exceptions.BadRequestException;
 import buy01.user_service.model.Role;
 import buy01.user_service.model.User;
@@ -18,7 +19,7 @@ import com.mongodb.DuplicateKeyException;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -65,5 +66,18 @@ public class AuthService {
         response.put("message", "Login successful");
         response.put("token", token);
         return response;
+    }
+     public ProfileResponse getProfile(String userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new ProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.getAvatarUrl()
+        );
     }
 }

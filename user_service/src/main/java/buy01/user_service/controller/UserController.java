@@ -1,7 +1,8 @@
 package buy01.user_service.controller;
 
+import buy01.user_service.dto.ProfileResponse;
 import buy01.user_service.model.Role;
-import buy01.user_service.service.AuthService;
+import buy01.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -16,19 +17,25 @@ import com.mongodb.lang.NonNull;;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class UserController {
 
-    private final AuthService authService;
+    private final UserService us;
 
     @PostMapping("/register")
     public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request.getUsername(), request.getEmail(),
+        return us.register(request.getUsername(), request.getEmail(),
                 request.getPassword(), request.getRole());
     }
 
     @PostMapping("/login")
     public Map<String, Object>  login(@RequestBody LoginRequest request) {
-        return authService.login(request.getEmail(), request.getPassword());
+        return us.login(request.getEmail(), request.getPassword());
+    }
+     @GetMapping("/profile")
+    public ProfileResponse profile(
+            @RequestHeader("X-User-Id") String userId) {
+
+        return us.getProfile(userId);
     }
 
     static class RegisterRequest {
