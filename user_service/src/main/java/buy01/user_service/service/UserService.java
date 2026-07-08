@@ -53,6 +53,7 @@ public class UserService {
     }
 
     public Map<String, Object> login(String email, String password) {
+        System.out.println("Login attempt for email: " + email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new BadRequestException("User not found");
@@ -60,7 +61,7 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.get().getPassword())) {
             throw new BadRequestException("Invalid password");
         }
-        String token = jwtUtil.generateToken(user.get().getId(), user.get().getRole().name());
+        String token = jwtUtil.generateToken(user.get());
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Login successful");

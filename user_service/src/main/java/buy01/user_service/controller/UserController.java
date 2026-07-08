@@ -28,13 +28,14 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object>  login(@RequestBody LoginRequest request) {
+    public Map<String, Object> login(@RequestBody LoginRequest request) {
+        System.out.println("Login attempt for email: " + request.getEmail());
         return us.login(request.getEmail(), request.getPassword());
     }
-     @GetMapping("/profile")
+    @GetMapping("/profile")
     public ProfileResponse profile(
             @RequestHeader("X-User-Id") String userId) {
-
+                System.out.println("Profile request for userId: " + userId);
         return us.getProfile(userId);
     }
 

@@ -24,10 +24,11 @@ import java.util.Collections;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     // Must match the key used in JwtUtil (at least 32 characters for HS256)
-    private final String SECRET = "my-secret-key-that-is-at-least-32-characters-long!!"; 
+    private static final String SECRET_KEY =
+        "mysecretkeymysecretkeymysecretkey123456789012345678901234567890"; 
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
