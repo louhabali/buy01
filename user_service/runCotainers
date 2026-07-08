@@ -1,0 +1,2 @@
+MONGODB : docker run -d --name user_service_mongo -p 27017:27017 -e MONGO_INITDB_DATABASE=user_service_db -v mongo-data:/data/db mongo:7 
+REDIS :docker run -d --name redis -p 6379:6379 redis:7

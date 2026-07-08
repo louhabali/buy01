@@ -1,5 +1,6 @@
 package buy01.user_service.controller;
 
+import buy01.user_service.dto.ProfileRequest;
 import buy01.user_service.dto.ProfileResponse;
 import buy01.user_service.model.Role;
 import buy01.user_service.service.UserService;
@@ -37,6 +38,19 @@ public class UserController {
             @RequestHeader("X-User-Id") String userId) {
                 System.out.println("Profile request for userId: " + userId);
         return us.getProfile(userId);
+    }
+    @PutMapping("/profile")
+    public ProfileResponse updateProfile(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody ProfileRequest profile) {
+                System.out.println("Update profile request for userId: " + userId);
+        return us.updateProfile(userId, profile);
+    }
+    @DeleteMapping("/profile")
+    public Map<String, Object> deleteProfile(
+            @RequestHeader("X-User-Id") String userId) {
+                System.out.println("Delete profile request for userId: " + userId);
+        return us.deleteProfile(userId);
     }
 
     static class RegisterRequest {

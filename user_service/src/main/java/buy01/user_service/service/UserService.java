@@ -1,5 +1,6 @@
 package buy01.user_service.service;
 
+import buy01.user_service.dto.ProfileRequest;
 import buy01.user_service.dto.ProfileResponse;
 import buy01.user_service.exceptions.BadRequestException;
 import buy01.user_service.model.Role;
@@ -12,6 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +33,7 @@ public class UserService {
         String cleanEmail = email.toLowerCase().trim();
         if (userRepository.findByEmail(cleanEmail).isPresent()) {
             throw new BadRequestException("Email already exists");
-        }else if (userRepository.findByUsername(username).isPresent()) {
+        } else if (userRepository.findByUsername(username).isPresent()) {
             throw new BadRequestException("Username already exists");
         }
         Role checkedRole = (role == Role.SELLER) ? Role.SELLER : Role.CLIENT;
@@ -68,8 +72,10 @@ public class UserService {
         response.put("token", token);
         return response;
     }
-     public ProfileResponse getProfile(String userId) {
 
+    @Cacheable(value = "profiles", key = "#userId")
+    public ProfileResponse getProfile(String userId) {
+        System.out.println("Fetching profile from mongodb: " + userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -78,7 +84,39 @@ public class UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole(),
-                user.getAvatarUrl()
-        );
+                user.getAvatarUrl());
+    }
+
+    @CachePut(value = "profiles", key = "#userId")
+    public ProfileResponse updateProfile(String userId, ProfileRequest profile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setUsername(profile.getUsername());
+        user.setEmail(profile.getEmail());
+        user.setAvatarUrl(profile.getAvatarUrl());
+
+        User updatedUser = userRepository.save(user);
+
+        return new ProfileResponse(
+                updatedUser.getId(),
+                updatedUser.getUsername(),
+                updatedUser.getEmail(),
+                updatedUser.getRole(),
+                updatedUser.getAvatarUrl());
+    }
+
+    @CacheEvict(value = "profiles", key = "#userId")
+    public Map<String, Object> deleteProfile(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        userRepository.delete(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User deleted successfully");
+
+        return response;
     }
 }
