@@ -117,7 +117,7 @@ public class UserService {
         userRepository.delete(user);
         // Send UserDeletedEvent to Kafka
         producer.sendUserDeletedEvent(new UserDeletedEvent(userId));
-        system.out.println("UserDeletedEvent sent for userId: " + userId);
+        System.out.println("UserDeletedEvent sent for userId: " + userId);
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "User deleted successfully");
