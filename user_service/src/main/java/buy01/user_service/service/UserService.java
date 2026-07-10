@@ -2,9 +2,11 @@ package buy01.user_service.service;
 
 import buy01.user_service.dto.ProfileRequest;
 import buy01.user_service.dto.ProfileResponse;
+import buy01.user_service.event.UserDeletedEvent;
 import buy01.user_service.exceptions.BadRequestException;
 import buy01.user_service.model.Role;
 import buy01.user_service.model.User;
+import buy01.user_service.producer.UserEventProducer;
 import buy01.user_service.repo.UserRepository;
 import buy01.user_service.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,8 @@ import com.mongodb.DuplicateKeyException;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
+    // communicate 
+    private final UserEventProducer producer;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -112,7 +115,9 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         userRepository.delete(user);
-
+        // Send UserDeletedEvent to Kafka
+        producer.sendUserDeletedEvent(new UserDeletedEvent(userId));
+        system.out.println("UserDeletedEvent sent for userId: " + userId);
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "User deleted successfully");
