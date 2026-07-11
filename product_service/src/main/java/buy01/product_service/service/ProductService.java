@@ -16,37 +16,95 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository;
+    private final ProductRepository repository;
     private final MediaClient mediaClient;
+
+    public List<Product> getAllProducts() {
+        return repository.findAll();
+    }
+
+    public Product getProduct(String id) {
+
+        return repository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
 
     public Product createProduct(
             String name,
             Float price,
             MultipartFile[] images) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String sellerId = auth.getName();
-        // String sellerId = "test-seller";
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+                String sellerId = auth.getName();
 
         List<String> imageUrls = new ArrayList<>();
 
-        try {
+        if(images != null && images.length > 0){
 
-            if (images != null && images.length > 0) {
-                imageUrls = mediaClient.uploadImages(images);
-            }
+            imageUrls = mediaClient.uploadImages(images);
 
-            Product product = Product.builder()
-                    .name(name.trim())
-                    .price(price)
-                    .sellerId(sellerId)
-                    .imageUrls(imageUrls)
-                    .build();
-
-            return productRepository.save(product);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to upload images", e);
         }
+
+        Product product = Product.builder()
+                .name(name)
+                .price(price)
+                .sellerId(sellerId)
+                .imageUrls(imageUrls)
+                .build();
+
+        return repository.save(product);
     }
+
+    public Product updateProduct(
+            String id,
+            String name,
+            Float price,
+            MultipartFile[] images){
+
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String sellerId = auth.getName();
+
+        Product product = repository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if(!product.getSellerId().equals(sellerId)){
+            throw new SecurityException("You are not the owner");
+        }
+
+        product.setName(name);
+        product.setPrice(price);
+
+        if(images != null && images.length > 0){
+
+            List<String> imageUrls =
+                    mediaClient.uploadImages(images);
+
+            product.setImageUrls(imageUrls);
+        }
+
+        return repository.save(product);
+
+    }
+
+    public void deleteProduct(String id){
+
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String sellerId = auth.getName();
+
+        Product product = repository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if(!product.getSellerId().equals(sellerId)){
+            throw new SecurityException("You are not the owner");
+        }
+
+        repository.delete(product);
+
+    }
+
 }

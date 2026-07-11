@@ -15,11 +15,11 @@ import java.util.List;
 public interface MediaClient {
 
     @PostMapping(
-            value = "/media/upload",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    List<String> uploadImages(
-            @RequestPart("images") MultipartFile[] images
-    );
+        value="/media/images",
+        consumes=MediaType.MULTIPART_FORM_DATA_VALUE
+)
+List<String> uploadImages(
+        @RequestPart("images") MultipartFile[] images
+);
 
 }
