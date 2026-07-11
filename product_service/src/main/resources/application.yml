@@ -1,0 +1,25 @@
+server:
+  port: 8082
+
+media:
+  service:
+    url: http://localhost:8083
+    
+spring:
+  application:
+    name: product_service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/product_db
+
+  web:
+    resources:
+      static-locations:
+        - file:uploads/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

@@ -1,0 +1,26 @@
+package buy01.product_service.model;
+
+import lombok.*;
+import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Document(collection = "products")
+public class Product {
+
+    @Id
+    private String id;
+
+    private String name;
+
+    private Float price;
+
+    private String sellerId;
+
+    // private String[] imageUrls;
+    private List<String> imageUrls;
+}
