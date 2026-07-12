@@ -107,4 +107,11 @@ public class ProductService {
 
     }
 
+    // kafka 
+    public void deleteProductsBySellerId(String sellerId) {
+
+    repository.deleteBySellerId(sellerId);
+
+    System.out.println("Deleted all products of seller: " + sellerId);
+}
 }

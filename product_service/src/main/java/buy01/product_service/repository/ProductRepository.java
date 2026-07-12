@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface ProductRepository extends MongoRepository<Product, String> {
     List<Product> findBySellerId(String sellerId);
+
+    void deleteBySellerId(String sellerId);
+
 }
