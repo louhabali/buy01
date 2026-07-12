@@ -1,4 +1,4 @@
-package buy01.product_service.exception;
+package buy01.media_service.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

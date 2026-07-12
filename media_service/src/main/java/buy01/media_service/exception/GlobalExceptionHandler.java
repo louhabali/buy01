@@ -1,4 +1,4 @@
-package buy01.product_service.exception;
+package buy01.media_service.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
