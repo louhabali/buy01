@@ -20,7 +20,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import buy01.user_service.service.UserBlacklistService;
 import com.mongodb.DuplicateKeyException;
 
 @Service
@@ -31,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserBlacklistService blacklistService;
 
     public Map<String, Object> register(String username, String email, String password, Role role) {
         String cleanEmail = email.toLowerCase().trim();
@@ -113,7 +114,7 @@ public class UserService {
     public Map<String, Object> deleteProfile(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
+        blacklistService.blacklistUser(user.getId());
         userRepository.delete(user);
         // Send UserDeletedEvent to Kafka
         producer.sendUserDeletedEvent(new UserDeletedEvent(userId));
