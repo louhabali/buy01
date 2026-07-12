@@ -90,15 +90,10 @@ public class ProductService {
     }
 
     public void deleteProduct(String id , String userId) {
-
-       
-
-        String sellerId =userId;
-
         Product product = repository.findById(id)
         .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if(!product.getSellerId().equals(sellerId)){
+        if(!product.getSellerId().equals(userId)){
             throw new SecurityException("You are not the owner");
         }
 
@@ -109,8 +104,7 @@ public class ProductService {
     // kafka 
     public void deleteProductsBySellerId(String sellerId) {
 
-    repository.deleteBySellerId(sellerId);
-
-    System.out.println("Deleted all products of seller: " + sellerId);
+     repository.deleteBySellerId(sellerId);
+      
 }
 }
