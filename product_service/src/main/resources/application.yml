@@ -12,7 +12,12 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/product_db
-
+  
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 10MB
+      
   web:
     resources:
       static-locations:

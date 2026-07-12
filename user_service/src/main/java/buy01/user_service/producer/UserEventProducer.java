@@ -20,5 +20,5 @@ public class UserEventProducer {
 
         System.out.println("UserDeletedEvent sent!");
     }
-
+    
 }
