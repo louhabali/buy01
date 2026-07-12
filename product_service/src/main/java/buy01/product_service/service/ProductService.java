@@ -32,12 +32,13 @@ public class ProductService {
     public Product createProduct(
             String name,
             Float price,
-            MultipartFile[] images) {
+            MultipartFile[] images,
+            String userId) {
 
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
-                String sellerId = auth.getName();
-
+        // Authentication auth =
+        //         SecurityContextHolder.getContext().getAuthentication();
+        //         String sellerId = auth.getName();
+        //         System.out.println("Authenticated user: " + sellerId);
         List<String> imageUrls = new ArrayList<>();
 
         if(images != null && images.length > 0){
@@ -49,7 +50,7 @@ public class ProductService {
         Product product = Product.builder()
                 .name(name)
                 .price(price)
-                .sellerId(sellerId)
+                .sellerId(userId)
                 .imageUrls(imageUrls)
                 .build();
 

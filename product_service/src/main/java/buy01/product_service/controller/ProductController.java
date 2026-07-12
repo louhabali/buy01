@@ -28,11 +28,12 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
+            @RequestHeader("X-User-Id") String userId,
             @RequestParam String name,
             @RequestParam Float price,
             @RequestParam(required = false) MultipartFile[] images) {
-
-        return productService.createProduct(name, price, images);
+                System.out.println("Received userId: " + userId);
+        return productService.createProduct(name, price, images ,userId);
     }
 
     @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
