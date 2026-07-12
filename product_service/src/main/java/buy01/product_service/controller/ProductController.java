@@ -41,14 +41,15 @@ public class ProductController {
             @PathVariable String id,
             @RequestParam String name,
             @RequestParam Float price,
-            @RequestParam(required = false) MultipartFile[] images) {
+            @RequestParam(required = false) MultipartFile[] images,
+            @RequestHeader("X-User-Id") String userId) {
 
-        return productService.updateProduct(id, name, price, images);
+        return productService.updateProduct(id, name, price, images, userId);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProduct(@PathVariable String id) {
-        productService.deleteProduct(id);
+    public void deleteProduct(@PathVariable String id, @RequestHeader("X-User-Id") String userId) {
+        productService.deleteProduct(id, userId);
     }
 
 }

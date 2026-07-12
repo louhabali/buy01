@@ -4,8 +4,6 @@ import buy01.product_service.client.MediaClient;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -61,12 +59,13 @@ public class ProductService {
             String id,
             String name,
             Float price,
-            MultipartFile[] images){
+            MultipartFile[] images,
+            String userId
+        ){
 
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
+      
 
-        String sellerId = auth.getName();
+        String sellerId = userId;
 
         Product product = repository.findById(id)
         .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -90,12 +89,11 @@ public class ProductService {
 
     }
 
-    public void deleteProduct(String id){
+    public void deleteProduct(String id , String userId) {
 
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
+       
 
-        String sellerId = auth.getName();
+        String sellerId =userId;
 
         Product product = repository.findById(id)
         .orElseThrow(() -> new RuntimeException("Product not found"));
