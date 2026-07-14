@@ -1,5 +1,0 @@
-MONGODB : docker run -d --name user_service_mongo -p 27017:27017 -e MONGO_INITDB_DATABASE=user_service_db -v mongo-data:/data/db mongo:7 
-REDIS :docker run -d --name redis -p 6379:6379 redis:7
-
-KAFKA PULLING : docker pull apache/kafka:latest
-KAFKA with kraft RUNNING : docker run -d --name kafka -p 9092:9092 -e KAFKA_KRAFT_MODE=true -e KAFKA_LISTENERS=PLAINTEXT://:9092 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_BROKER_ID=1 -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093 -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER -e KAFKA_LOG_DIRS=/var/lib/kafka/data -v kafka-data:/var/lib/kafka/data apache/kafka:latest
