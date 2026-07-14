@@ -4,7 +4,7 @@ services:
 
   gateway:
     build: ./gateway_service
-    container_name: gateway_service
+    container_name: gateway-service
 
     ports:
       - "8089:8089"
@@ -13,6 +13,9 @@ services:
       - user-service
       - product-service
       - media-service
+
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
 
   user-service:
     build: ./user_service
@@ -26,6 +29,10 @@ services:
     expose:
       - "8081"
 
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/buy01
+      SPRING_DATA_REDIS_HOST: redis
+
   product-service:
     build: ./product_service
     container_name: product-service
@@ -38,6 +45,10 @@ services:
     expose:
       - "8082"
 
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/product_db
+      SPRING_DATA_REDIS_HOST: redis
+
   media-service:
     build: ./media_service
     container_name: media-service
@@ -47,6 +58,9 @@ services:
 
     expose:
       - "8083"
+
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/media_db
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1

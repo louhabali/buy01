@@ -2,8 +2,7 @@ server:
   port: 8089
 spring:
   application:
-
-    name: gateway_service
+    name: gateway-service
   cloud:
     gateway:
       routes:
