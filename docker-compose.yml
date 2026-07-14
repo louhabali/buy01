@@ -1,4 +1,52 @@
+version: "3.9"
+
 services:
+
+  gateway:
+    build: ./gateway_service
+    container_name: gateway_service
+
+    ports:
+      - "8089:8089"
+
+    depends_on:
+      - user-service
+      - product-service
+      - media-service
+
+  user-service:
+    build: ./user_service
+    container_name: user-service
+
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+
+    expose:
+      - "8081"
+
+  product-service:
+    build: ./product_service
+    container_name: product-service
+
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+
+    expose:
+      - "8082"
+
+  media-service:
+    build: ./media_service
+    container_name: media-service
+
+    depends_on:
+      - mongodb
+
+    expose:
+      - "8083"
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
@@ -9,31 +57,18 @@ services:
 
     environment:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-
       KAFKA_NODE_ID: 1
-
       KAFKA_PROCESS_ROLES: broker,controller
-
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
   mongodb:
@@ -42,9 +77,6 @@ services:
 
     ports:
       - "27017:27017"
-
-    environment:
-      MONGO_INITDB_DATABASE: user_service_db
 
     volumes:
       - mongo-data:/data/db
