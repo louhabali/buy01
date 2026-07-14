@@ -2,18 +2,23 @@ package buy01.gateway_service.security;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-
 import buy01.gateway_service.service.UserBlacklistService;
+import buy01.gateway_service.service.UserServiceClient;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -22,6 +27,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private final JwtService jwtService;
     private final UserBlacklistService userBlacklistService;
+    private final UserServiceClient userServiceClient;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
@@ -59,29 +65,59 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String username = claims.getSubject();
         String role = claims.get("role", String.class);
         String userId = claims.get("userId", String.class);
-       // Boolean isBlacklisted = blacklistService.isBlacklisted(addBlacklistEvent.getBlacklist(), userId);
+        // Boolean isBlacklisted =
+        // blacklistService.isBlacklisted(addBlacklistEvent.getBlacklist(), userId);
         if (userBlacklistService.isBlacklisted(userId)) {
-    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-    return exchange.getResponse().setComplete();
-}
-        System.out.println("Adding headers:");
-        System.out.println("X-User-Id = " + userId);
-        System.out.println("X-Username = " + username);
-        System.out.println("X-Role = " + role);
-        ServerHttpRequest request = exchange.getRequest()
-                .mutate()
-                .header("X-User-Id", userId)
-                .header("X-Username", username)
-                .header("X-Role", role)
-                .build();
 
-        ServerWebExchange newExchange = exchange.mutate()
-                .request(request)
-                .build();
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-            System.out.println("Forwarding to downstream...");
-        return chain.filter(newExchange).doOnSuccess(v -> System.out.println("Request completed successfully"))
-        .doOnError(e -> System.out.println("Error: " + e.getMessage()));
+            String body = """
+                    {
+                      "message": "User is blacklisted"
+                    }
+                    """;
+
+            DataBuffer buffer = exchange.getResponse()
+                    .bufferFactory()
+                    .wrap(body.getBytes(StandardCharsets.UTF_8));
+
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        }
+        return userServiceClient.exists(userId)
+                .flatMap(exists -> {
+
+                    if (!exists) {
+
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+                        String body = """
+                                {
+                                  "message": "User does not exist"
+                                }
+                                """;
+
+                        DataBuffer buffer = exchange.getResponse()
+                                .bufferFactory()
+                                .wrap(body.getBytes(StandardCharsets.UTF_8));
+
+                        return exchange.getResponse().writeWith(Mono.just(buffer));
+                    }
+
+                    ServerHttpRequest request = exchange.getRequest()
+                            .mutate()
+                            .header("X-User-Id", userId)
+                            .header("X-Username", username)
+                            .header("X-Role", role)
+                            .build();
+
+                    ServerWebExchange newExchange = exchange.mutate()
+                            .request(request)
+                            .build();
+
+                    return chain.filter(newExchange);
+                });
     }
 
     @Override
