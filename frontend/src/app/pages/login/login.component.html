@@ -1,1 +1,69 @@
-<p>login works!</p>
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-5">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <h2 class="text-center mb-4">
+
+                        Login
+
+                    </h2>
+
+                    <div
+                            *ngIf="error"
+                            class="alert alert-danger">
+
+                        {{error}}
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Email</label>
+
+                        <input
+
+                                class="form-control"
+
+                                [(ngModel)]="email">
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Password</label>
+
+                        <input
+
+                                type="password"
+
+                                class="form-control"
+
+                                [(ngModel)]="password">
+
+                    </div>
+
+                    <button
+
+                            class="btn btn-primary w-100"
+
+                            (click)="login()">
+
+                        Login
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
