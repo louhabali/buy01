@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-
+import { RegisterRequest } from '../../services/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -23,7 +23,8 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
-
+  avatarPreview: string | null = null;
+selectedAvatar: File | null = null;
   loading = false;
   error = '';
 
@@ -34,18 +35,36 @@ export class RegisterComponent {
     role: ['BUYER', Validators.required],
     avatar: ['']
   });
+  onAvatarSelected(event: Event): void {
 
+  const input = event.target as HTMLInputElement;
+
+  if (!input.files?.length) return;
+
+  const file = input.files[0];
+
+  this.selectedAvatar = file;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    this.avatarPreview = reader.result as string;
+  };
+
+  reader.readAsDataURL(file);
+
+}
   register(): void {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
+    
     this.loading = true;
     this.error = '';
 
-    const data = {
+    const data: RegisterRequest = {
       username: this.form.value.username!,
       email: this.form.value.email!,
       password: this.form.value.password!,

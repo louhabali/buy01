@@ -1,42 +1,142 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+  avatar?: string | null;
+}
+
+export interface JwtPayload {
+  sub: string;
+  userId: string;
+  role: string;
+  exp: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
-  login(data: any): Observable<any> {
-    return this.http.post(
+  private readonly TOKEN_KEY = 'token';
+
+  login(data: LoginRequest): Observable<any> {
+
+    return this.http.post<any>(
       `${environment.authUrl}/login`,
       data
+    ).pipe(
+
+      tap(res => {
+
+        this.saveToken(res.token);
+
+      })
+
     );
+
   }
 
-  register(data: any): Observable<any> {
+  register(data: RegisterRequest): Observable<any> {
+
     return this.http.post(
       `${environment.authUrl}/register`,
       data
     );
+
   }
 
-  logout() {
-    localStorage.removeItem('token');
+  logout(): void {
+
+    this.removeToken();
+
   }
 
-  saveToken(token: string) {
-    localStorage.setItem('token', token);
+  saveToken(token: string): void {
+
+    localStorage.setItem(this.TOKEN_KEY, token);
+
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+
+    return localStorage.getItem(this.TOKEN_KEY);
+
+  }
+
+  removeToken(): void {
+
+    localStorage.removeItem(this.TOKEN_KEY);
+
   }
 
   isLoggedIn(): boolean {
-    return this.getToken() != null;
+
+    const token = this.getToken();
+
+    if (!token) return false;
+
+    try {
+
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      return decoded.exp * 1000 > Date.now();
+
+    } catch {
+
+      return false;
+
+    }
+
   }
+
+  getDecodedToken(): JwtPayload | null {
+
+    const token = this.getToken();
+
+    if (!token) return null;
+
+    try {
+
+      return jwtDecode<JwtPayload>(token);
+
+    } catch {
+
+      return null;
+
+    }
+
+  }
+
+  getUserId(): string | null {
+
+    return this.getDecodedToken()?.userId ?? null;
+
+  }
+
+  getEmail(): string | null {
+
+    return this.getDecodedToken()?.sub ?? null;
+
+  }
+
+  getRole(): string | null {
+
+    return this.getDecodedToken()?.role ?? null;
+
+  }
+
 }

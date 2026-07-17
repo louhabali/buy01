@@ -6,7 +6,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, LoginRequest } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -42,19 +42,24 @@ export class LoginComponent {
     this.loading = true;
     this.error = '';
 
-    this.authService.login(this.form.getRawValue()).subscribe({
+    const request: LoginRequest = {
+  email: this.form.value.email!,
+  password: this.form.value.password!
+};
 
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/']);
-      },
+this.authService.login(request).subscribe({
 
-      error: (err) => {
-        this.loading = false;
-        this.error = err?.error?.message || 'Invalid email or password';
-      }
+  next: () => {
+    this.loading = false;
+    this.router.navigate(['/']);
+  },
 
-    });
+  error: (err) => {
+    this.loading = false;
+    this.error = err?.error?.message || 'Invalid email or password';
+  }
+
+});
 
   }
 

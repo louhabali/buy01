@@ -1,11 +1,11 @@
 export const environment = {
   production: false,
 
-  gatewayUrl: 'http://localhost:8080',
+  gatewayUrl: 'https://localhost:8089',
 
-  authUrl: 'http://localhost:8080/auth',
+  authUrl: 'https://localhost:8089/auth',
 
-  productUrl: 'http://localhost:8080/products',
+  productUrl: 'https://localhost:8089/products',
 
-  mediaUrl: 'http://localhost:8080/media'
+  mediaUrl: 'https://localhost:8089/media'
 };
