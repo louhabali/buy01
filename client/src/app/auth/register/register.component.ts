@@ -77,7 +77,7 @@ selectedAvatar: File | null = null;
       next: () => {
 
         this.loading = false;
-
+        
         // Redirect to login after successful registration
         this.router.navigate(['/login']);
 

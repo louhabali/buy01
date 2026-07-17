@@ -49,9 +49,12 @@ export class LoginComponent {
 
 this.authService.login(request).subscribe({
 
-  next: () => {
-    this.loading = false;
-    this.router.navigate(['/']);
+  next: (response) => {
+      this.loading = false;
+
+  this.authService.saveToken(response.token);
+
+  this.router.navigate(['/']);
   },
 
   error: (err) => {

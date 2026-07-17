@@ -16,7 +16,14 @@ export interface RegisterRequest {
   role: string;
   avatar?: string | null;
 }
-
+export interface ProfileResponse {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  avatar: string;
+  createdAt: string;
+}
 export interface JwtPayload {
   sub: string;
   userId: string;
@@ -49,7 +56,11 @@ export class AuthService {
     );
 
   }
-
+  getProfile() {
+    return this.http.get<ProfileResponse>(
+        `${environment.authUrl}/profile`
+    );
+}
   register(data: RegisterRequest): Observable<any> {
 
     return this.http.post(
