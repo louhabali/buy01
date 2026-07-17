@@ -51,7 +51,7 @@ this.authService.login(request).subscribe({
 
   next: (response) => {
       this.loading = false;
-
+    console.log('Login successful:', response);
   this.authService.saveToken(response.token);
 
   this.router.navigate(['/']);

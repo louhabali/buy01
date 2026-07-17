@@ -41,7 +41,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'token';
 
   login(data: LoginRequest): Observable<any> {
-
+    console.log('Sending login request with data:', data , 'to URL:', `${environment.authUrl}/login`);
     return this.http.post<any>(
       `${environment.authUrl}/login`,
       data
