@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 flex items-center justify-center p-4 overflow-y-auto">
+
+  <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-8 lg:p-10">
+
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-blue-950">
+        Create Account
+      </h1>
+
+      <p class="text-gray-500 mt-2">
+        Join Buy01 and start buying or selling today.
+      </p>
+    </div>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="register()"
+      class="space-y-5">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <div>
+          <label class="block mb-2 font-semibold text-gray-700">
+            Username
+          </label>
+
+          <input
+            type="text"
+            formControlName="username"
+            placeholder="Enter your username"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block mb-2 font-semibold text-gray-700">
+            Email
+          </label>
+
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="example@email.com"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <div>
+          <label class="block mb-2 font-semibold text-gray-700">
+            Password
+          </label>
+
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block mb-2 font-semibold text-gray-700">
+            Account Type
+          </label>
+
+          <select
+            formControlName="role"
+            class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+            <option value="BUYER">Buyer</option>
+            <option value="SELLER">Seller</option>
+
+          </select>
+        </div>
+
+      </div>
+
+      <div>
+        <label class="block mb-2 font-semibold text-gray-700">
+          Avatar URL
+          <span class="text-gray-400 font-normal">(Optional)</span>
+        </label>
+
+        <input
+          type="text"
+          formControlName="avatar"
+          placeholder="https://example.com/avatar.jpg"
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <div
+        *ngIf="error"
+        class="rounded-xl bg-red-100 border border-red-300 text-red-700 px-4 py-3">
+        {{ error }}
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-900 hover:bg-blue-800 transition duration-300 text-white font-semibold text-lg py-3 rounded-xl">
+
+        {{ loading ? 'Creating Account...' : 'Create Account' }}
+
+      </button>
+
+    </form>
+
+    <div class="mt-6 text-center">
+      <span class="text-gray-600">
+        Already have an account?
+      </span>
+
+      <a
+        routerLink="/login"
+        class="ml-1 font-bold text-blue-900 hover:underline">
+        Login
+      </a>
+    </div>
+
+  </div>
+
+</div>
