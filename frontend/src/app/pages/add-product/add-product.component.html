@@ -1,0 +1,50 @@
+<div class="container mt-5">
+
+    <div class="card p-4">
+
+        <h2>Add Product</h2>
+
+        <div class="mb-3">
+
+            <label>Name</label>
+
+            <input
+                class="form-control"
+                [(ngModel)]="name">
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Price</label>
+
+            <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="price">
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Images</label>
+
+            <input
+                type="file"
+                class="form-control"
+                multiple
+                (change)="onFileSelected($event)">
+
+        </div>
+
+        <button
+            class="btn btn-success"
+            (click)="saveProduct()">
+
+            Save Product
+
+        </button>
+
+    </div>
+
+</div>
