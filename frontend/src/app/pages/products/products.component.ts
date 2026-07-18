@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../models/product';
+import { ProductCardComponent } from '../../shared/product-card/product-card.component';
 
 
 @Component({
@@ -12,7 +13,8 @@ import { Product } from '../../models/product';
 
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    ProductCardComponent
   ],
 
   templateUrl: './products.component.html',
@@ -66,9 +68,6 @@ export class ProductsComponent implements OnInit {
 
 
   }
-
-
-
 
   deleteProduct(id: string): void {
 

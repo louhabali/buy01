@@ -1,1 +1,44 @@
-<p>product-card works!</p>
+<div class="card shadow">
+
+
+    <img
+    *ngIf="product.imageUrls.length"
+    [src]="product.imageUrls[0]"
+    class="card-img-top product-image">
+
+
+    <div class="card-body">
+
+
+        <h5 class="card-title">
+            {{product.name}}
+        </h5>
+
+
+        <p class="text-primary fw-bold">
+            {{product.price}} DH
+        </p>
+
+
+        <a
+        class="btn btn-warning me-2"
+        [routerLink]="['/products/edit', product.id]">
+
+            Edit
+
+        </a>
+
+
+        <button
+        class="btn btn-danger"
+        (click)="deleteProduct()">
+
+            Delete
+
+        </button>
+
+
+    </div>
+
+
+</div>
