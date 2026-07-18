@@ -10,15 +10,16 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class UserServiceClient {
 
-    private final WebClient webClient;
+    WebClient webClient = WebClient.create("http://user-service:8081");
 
     public Mono<Boolean> exists(String userId) {
 
         return webClient.get()
-                .uri("http://user-service:8081/internal/users/{id}/exists", userId)
-                .retrieve()
-                .toBodilessEntity()
-                .map(response -> true)
-                .onErrorReturn(false);
+    .uri("/internal/users/{id}/exists", userId)
+                .exchangeToMono(response -> {
+                    System.out.println("Status = " + response.statusCode());
+                    return Mono.just(response.statusCode().is2xxSuccessful());
+                })
+                .doOnError(Throwable::printStackTrace);
     }
 }

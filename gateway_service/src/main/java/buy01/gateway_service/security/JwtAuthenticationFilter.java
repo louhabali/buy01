@@ -47,14 +47,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 .getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-
+        
         String token = authHeader.substring(7);
-        System.out.println("JWT Token: " + token);
+        //System.out.println("JWT Token: " + token);
         if (!jwtService.validateToken(token)) {
+            System.out.println("Missing or invalid Authorization header" + authHeader);
 
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
