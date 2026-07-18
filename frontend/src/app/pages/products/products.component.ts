@@ -2,48 +2,116 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { Product } from '../../models/product';
 import { ProductService } from '../../core/services/product.service';
+import { Product } from '../../models/product';
+
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+
+  imports: [
+    CommonModule,
+    RouterModule
+  ],
+
   templateUrl: './products.component.html',
   styleUrl: './products.component.css'
 })
+
+
 export class ProductsComponent implements OnInit {
+
 
   private productService = inject(ProductService);
 
+
   products: Product[] = [];
 
+
+
   ngOnInit(): void {
+
     this.loadProducts();
+
   }
 
-  loadProducts() {
-    this.productService.getAllProducts().subscribe({
-      next: (data) => {
-        this.products = data;
-      },
-      error: (err) => {
-        console.log(err);
-      }
-    });
+
+
+  loadProducts(): void {
+
+
+    this.productService.getAllProducts()
+      .subscribe({
+
+        next: (data) => {
+
+          console.log(data);
+
+          this.products = data;
+
+        },
+
+
+        error: (err) => {
+
+          console.error(
+            'Error loading products',
+            err
+          );
+
+        }
+
+      });
+
+
   }
 
-  deleteProduct(id: string) {
 
-    if (!confirm('Delete this product?')) {
+
+
+  deleteProduct(id: string): void {
+
+
+    const confirmDelete = confirm(
+      'Delete this product?'
+    );
+
+
+    if (!confirmDelete) {
       return;
     }
 
-    this.productService.deleteProduct(id).subscribe({
-      next: () => this.loadProducts(),
-      error: (err) => console.log(err)
-    });
+
+
+    this.productService.deleteProduct(id)
+      .subscribe({
+
+        next: () => {
+
+          console.log(
+            'Product deleted'
+          );
+
+          this.loadProducts();
+
+        },
+
+
+        error: (err) => {
+
+          console.error(
+            'Delete error',
+            err
+          );
+
+        }
+
+      });
+
 
   }
+
+
 
 }
