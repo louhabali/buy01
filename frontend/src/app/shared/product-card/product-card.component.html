@@ -1,44 +1,59 @@
-<div class="card shadow">
+<div class="card product-card h-100">
 
+    <div class="image-container">
 
-    <img
-    *ngIf="product.imageUrls.length"
-    [src]="product.imageUrls[0]"
-    class="card-img-top product-image">
-
-
-    <div class="card-body">
-
-
-        <h5 class="card-title">
-            {{product.name}}
-        </h5>
-
-
-        <p class="text-primary fw-bold">
-            {{product.price}} DH
-        </p>
-
-
-        <a
-        class="btn btn-warning me-2"
-        [routerLink]="['/products/edit', product.id]">
-
-            Edit
-
-        </a>
-
-
-        <button
-        class="btn btn-danger"
-        (click)="deleteProduct()">
-
-            Delete
-
-        </button>
-
+        <img
+            *ngIf="product.imageUrls?.length"
+            [src]="product.imageUrls[0]"
+            class="card-img-top product-image"
+            [alt]="product.name">
 
     </div>
 
+    <div class="card-body">
+
+        <h6 class="product-title">
+            {{ product.name }}
+        </h6>
+
+        <h5 class="price">
+            {{ product.price }} DH
+        </h5>
+
+        <p class="sold">
+            ⭐⭐⭐⭐⭐
+        </p>
+
+        <a
+            class="btn btn-warning w-100 mb-2"
+            [routerLink]="['/products', product.id]">
+
+            View Details
+
+        </a>
+
+        <div
+            *ngIf="currentUserId === product.sellerId"
+            class="d-flex gap-2">
+
+            <a
+                class="btn btn-primary flex-fill"
+                [routerLink]="['/products/edit', product.id]">
+
+                Edit
+
+            </a>
+
+            <button
+                class="btn btn-danger flex-fill"
+                (click)="deleteProduct()">
+
+                Delete
+
+            </button>
+
+        </div>
+
+    </div>
 
 </div>

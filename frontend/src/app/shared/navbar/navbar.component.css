@@ -1,0 +1,23 @@
+.navbar{
+
+    height:80px;
+
+}
+
+.navbar-brand{
+
+    font-size:30px;
+
+}
+
+input{
+
+    height:45px;
+
+}
+
+.btn-warning{
+
+    background:#ff6f00;
+    color:white;
+}

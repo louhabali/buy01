@@ -14,7 +14,7 @@ import { ProductCardComponent } from '../../shared/product-card/product-card.com
   imports: [
     CommonModule,
     RouterModule,
-    ProductCardComponent
+    // ProductCardComponent
   ],
 
   templateUrl: './products.component.html',
@@ -31,7 +31,7 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
 
 
-
+  // currentUserId = localStorage.getItem('username') || '';
   ngOnInit(): void {
 
     this.loadProducts();

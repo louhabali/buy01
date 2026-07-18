@@ -1,0 +1,87 @@
+<!-- Hero Banner -->
+
+<section class="hero">
+
+    <div>
+
+        <h1>Buy01 Marketplace</h1>
+
+        <p>
+            Discover thousands of amazing products.
+        </p>
+
+        <button class="btn btn-light btn-lg">
+
+            Shop Now
+
+        </button>
+
+    </div>
+
+</section>
+
+<!-- Flash Sale -->
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <h2 class="text-danger">
+
+            🔥 Flash Sale
+
+        </h2>
+
+        <button class="btn btn-outline-danger">
+
+            Shop All
+
+        </button>
+
+    </div>
+
+    <div class="row mt-4">
+
+        <div
+            class="col-lg-2 col-md-4 col-6 mb-4"
+            *ngFor="let product of products | slice:0:6">
+
+<app-product-card
+    [product]="product"
+    [currentUserId]="currentUserId"
+    (delete)="deleteProduct($event)">
+</app-product-card>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Latest Products -->
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">
+
+        Latest Products
+
+    </h2>
+
+    <div class="row">
+
+        <div
+            class="col-lg-3 col-md-4 col-sm-6 mb-4"
+            *ngFor="let product of products">
+
+<app-product-card
+    [product]="product"
+    [currentUserId]="currentUserId"
+    (delete)="deleteProduct($event)">
+</app-product-card>
+
+        </div>
+
+    </div>
+
+</div>

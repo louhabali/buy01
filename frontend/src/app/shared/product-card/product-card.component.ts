@@ -19,7 +19,8 @@ export class ProductCardComponent {
 
   @Input() product!: Product;
 
-
+  @Input() currentUserId!: string;
+  
   @Output() delete =
     new EventEmitter<string>();
 
