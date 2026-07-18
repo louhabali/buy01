@@ -18,7 +18,7 @@ export interface RegisterRequest {
 }
 export interface ProfileResponse {
   id: string;
-  username: string;
+  name: string;
   email: string;
   role: string;
   avatar: string;

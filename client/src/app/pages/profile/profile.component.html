@@ -29,7 +29,7 @@
                     class="w-44 h-44 rounded-full object-cover border-4 border-blue-900 shadow-lg">
 
                 <h1 class="mt-6 text-3xl font-bold text-blue-950">
-                    {{ user.username }}
+                    {{ user.name }}
                 </h1>
 
                 <span
@@ -56,7 +56,7 @@
                         </label>
 
                         <div class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-                            {{ user.username }}
+                            {{ user.name }}
                         </div>
                     </div>
 
@@ -86,7 +86,7 @@
                         </label>
 
                         <div class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-                            {{ user.createdAt }}
+                            {{ user.createdAt | date:'dd/MM/yyyy'}}
                         </div>
                     </div>
 

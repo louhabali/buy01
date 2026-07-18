@@ -33,14 +33,14 @@ export class ProfileComponent implements OnInit {
     this.authService.getProfile().subscribe({
 
       next: (data) => {
-
+        console.log('Profile data loaded:', data);
         this.user = data;
         this.loading = false;
 
       },
 
-      error: () => {
-
+      error: (ee) => {
+        console.error('Error loading profile:', ee);
         this.error = "Cannot load profile";
         this.loading = false;
 
