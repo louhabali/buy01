@@ -120,11 +120,13 @@ public class MediaService {
 
 
 
+                // String url =
+                //         "http://localhost:8083/media/images/"
+                //                 + fileName;
+
                 String url =
-                        "http://localhost:8083/media/images/"
+                        "https://localhost:8089/media/images/"
                                 + fileName;
-
-
 
                 Media media =
                         Media.builder()
