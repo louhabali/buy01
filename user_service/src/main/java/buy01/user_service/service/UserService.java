@@ -10,7 +10,7 @@ import buy01.user_service.producer.UserEventProducer;
 import buy01.user_service.repo.UserRepository;
 import buy01.user_service.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
-
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,9 +18,9 @@ import java.util.Optional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import buy01.user_service.service.UserBlacklistService;
+
 import com.mongodb.DuplicateKeyException;
 
 @Service
@@ -29,7 +29,7 @@ public class UserService {
     // communicate 
     private final UserEventProducer producer;
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserBlacklistService blacklistService;
 
@@ -45,7 +45,7 @@ public class UserService {
                 .username(username)
                 .email(cleanEmail)
                 .password(passwordEncoder.encode(password))
-                .role(checkedRole)
+                .role(checkedRole).createdAt(LocalDateTime.now().toString())
                 .build();
         try {
             userRepository.save(user);
@@ -88,7 +88,8 @@ public class UserService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole(),
-                user.getAvatarUrl());
+                user.getAvatarUrl(),
+                user.getCreatedAt());
     }
 
     @CachePut(value = "profiles", key = "#userId")
@@ -107,7 +108,8 @@ public class UserService {
                 updatedUser.getUsername(),
                 updatedUser.getEmail(),
                 updatedUser.getRole(),
-                updatedUser.getAvatarUrl());
+                updatedUser.getAvatarUrl(),
+                updatedUser.getCreatedAt());
     }
 
     @CacheEvict(value = "profiles", key = "#userId")

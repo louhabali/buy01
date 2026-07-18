@@ -22,6 +22,7 @@ public class User {
     private Role role;
 
     private String avatarUrl; 
+    private String createdAt; // ISO 8601 format
 }
 
 
