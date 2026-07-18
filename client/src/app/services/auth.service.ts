@@ -14,7 +14,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: string;
-  avatar?: string | null;
+  avatarUrl?: string | null;
 }
 export interface ProfileResponse {
   id: string;
@@ -61,6 +61,20 @@ export class AuthService {
         `${environment.authUrl}/profile`
     );
 }
+updateProfile(profile: {
+  username: string;
+  email: string;
+  avatarUrl: string;
+}) {
+
+  return this.http.put<ProfileResponse>(
+    `${environment.authUrl}/profile`,
+    profile
+  );
+
+}
+
+
   register(data: RegisterRequest): Observable<any> {
 
     return this.http.post(

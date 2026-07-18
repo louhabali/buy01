@@ -43,7 +43,7 @@ public class UserController {
     public ProfileResponse updateProfile(
             @RequestHeader("X-User-Id") String userId,
             @RequestBody ProfileRequest profile) {
-                System.out.println("Update profile request for userId: " + userId);
+                System.out.println("ha li wssl azbi : " + profile);
         return us.updateProfile(userId, profile);
     }
     @DeleteMapping("/profile")

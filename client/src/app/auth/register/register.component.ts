@@ -32,7 +32,7 @@ selectedAvatar: File | null = null;
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: ['BUYER', Validators.required],
+    role: ['SELLER', Validators.required],
     avatar: ['']
   });
   onAvatarSelected(event: Event): void {
@@ -69,7 +69,7 @@ selectedAvatar: File | null = null;
       email: this.form.value.email!,
       password: this.form.value.password!,
       role: this.form.value.role!,
-      avatar: this.form.value.avatar || null
+      avatarUrl: this.form.value.avatar || null
     };
 
     this.authService.register(data).subscribe({
