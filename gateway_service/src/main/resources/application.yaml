@@ -43,3 +43,7 @@ spring:
           uri: http://media-service:8083
           predicates:
             - Path=/media/**
+        - id: media_uploads
+          uri: http://media-service:8083
+          predicates:
+            - Path=/uploads/**

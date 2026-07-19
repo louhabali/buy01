@@ -37,7 +37,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         HttpMethod method = exchange.getRequest().getMethod();
         // Public endpoints
         if (path.startsWith("/auth/login") ||
-                path.startsWith("/auth/register") || (method == HttpMethod.GET && path.startsWith("/products"))) {
+                path.startsWith("/auth/register") ||
+                (method == HttpMethod.GET && path.startsWith("/products")) ||
+                (method == HttpMethod.GET && path.startsWith("/uploads/")) ||
+                (method == HttpMethod.POST && path.startsWith("/media/upload"))) {
 
             return chain.filter(exchange);
         }
@@ -50,9 +53,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-        
+
         String token = authHeader.substring(7);
-        //System.out.println("JWT Token: " + token);
+        // System.out.println("JWT Token: " + token);
         if (!jwtService.validateToken(token)) {
             System.out.println("Missing or invalid Authorization header" + authHeader);
 
