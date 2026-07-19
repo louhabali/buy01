@@ -61,6 +61,9 @@
 
       environment:
         SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/media_db
+      volumes:
+        - ./uploads:/app/uploads
+      restart: unless-stopped
 
     kafka:
       image: confluentinc/cp-kafka:7.6.1

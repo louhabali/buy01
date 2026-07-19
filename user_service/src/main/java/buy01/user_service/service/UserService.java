@@ -33,7 +33,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final UserBlacklistService blacklistService;
 
-    public Map<String, Object> register(String username, String email, String password, Role role) {
+    public Map<String, Object> register(String username, String email, String password, Role role, String avatarUrl) {
         String cleanEmail = email.toLowerCase().trim();
         if (userRepository.findByEmail(cleanEmail).isPresent()) {
             throw new BadRequestException("Email already exists");
@@ -46,6 +46,7 @@ public class UserService {
                 .email(cleanEmail)
                 .password(passwordEncoder.encode(password))
                 .role(checkedRole).createdAt(LocalDateTime.now().toString())
+                .avatarUrl(avatarUrl)
                 .build();
         try {
             userRepository.save(user);

@@ -25,7 +25,7 @@ public class UserController {
     @PostMapping("/register")
     public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
         return us.register(request.getUsername(), request.getEmail(),
-                request.getPassword(), request.getRole());
+                request.getPassword(), request.getRole() , request.getAvatarUrl());
     }
 
     @PostMapping("/login")
@@ -63,7 +63,7 @@ public class UserController {
         @NotEmpty(message = "Password is required")
         @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,}$", message = "Password must be at least 4 characters long and contain at least one letter and one number")
         private String password;
-        private String avatar;
+        private String avatarUrl;
         @NonNull
         private Role role;
         public String getUsername() { return username; }
@@ -72,8 +72,8 @@ public class UserController {
         public void setEmail(String email) { this.email = email; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
-        public String getAvatar() { return avatar; }
-        public void setAvatar(String avatar) { this.avatar = avatar; }
+        public String getAvatarUrl() { return avatarUrl; }
+        public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
         public Role getRole() { return role; }
         public void setRole(Role role) { this.role = role; }
     }
