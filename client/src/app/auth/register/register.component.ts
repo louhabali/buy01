@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,7 +16,8 @@ import { MediaService } from '../../services/media.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    FormsModule
   ],
   templateUrl: './register.component.html'
 })
@@ -101,7 +103,7 @@ private registerUser(avatarUrl: string): void {
     email: this.form.value.email!,
     password: this.form.value.password!,
     role: this.form.value.role!,
-    avatar: avatarUrl || null
+    avatarUrl
 
   };
 

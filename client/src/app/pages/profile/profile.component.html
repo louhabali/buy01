@@ -1,210 +1,158 @@
-<div class="min-h-screen bg-gradient-to-br from-[#001F3F] via-[#003366] to-[#001A33] flex items-center justify-center p-6">
+<div class="min-h-screen bg-[#0a1120] flex items-center justify-center p-6 antialiased font-sans">
 
-    <!-- Loading -->
-    <div *ngIf="loading" class="text-center">
-        <h1 class="text-white text-3xl font-bold">
-            Loading...
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center animate-pulse">
+        <h1 class="text-white text-2xl font-semibold tracking-wider">
+            Loading Profile...
         </h1>
     </div>
 
-    <!-- Profile -->
+    <!-- Main Card Container -->
     <div *ngIf="!loading && user"
-        class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl p-10">
+        class="w-full max-w-5xl bg-white border border-[#001830]/10 rounded-2xl shadow-[0_20px_50px_rgba(0,24,48,0.15)] overflow-hidden">
 
-        <div class="grid md:grid-cols-3 gap-10 items-start">
+        <div class="grid md:grid-cols-3">
 
-            <!-- ================= LEFT ================= -->
-            <div class="flex flex-col items-center">
+            <!-- ================= LEFT COLUMN (PROFILE SIDEBAR) ================= -->
+            <div class="bg-[#001830] p-10 flex flex-col items-center justify-between text-center min-h-[500px]">
+                
+                <div class="flex flex-col items-center w-full">
+                    <!-- Avatar Frame -->
+                    <div class="relative group">
+                        <div class="w-40 h-40 rounded-full border-2 border-white/20 p-1.5 transition-all duration-300 group-hover:border-white">
+                            <!-- Updated: Uses previewImage to show file changes instantly -->
+                            <img [src]="previewImage || '/dep.png'"
+                                 class="w-full h-full rounded-full object-cover">
+                        </div>
 
-                <div class="relative">
+                        <!-- Camera Overlay Filter -->
+                        <label *ngIf="editing"
+                            class="absolute inset-1.5 rounded-full bg-[#001830]/80 text-white flex flex-col items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100 backdrop-blur-xs">
+                            <span class="text-xl">📷</span>
+                            <span class="text-[10px] uppercase font-bold tracking-wider mt-1">Change</span>
+                            <input hidden type="file" accept="image/*" (change)="onImageSelected($event)">
+                        </label>
+                    </div>
 
-                    <img
-                        [src]="user.avatar || '/dep.png'"
-                        class="w-44 h-44 rounded-full object-cover border-4 border-blue-900 shadow-lg">
+                    <!-- Identity Details -->
+                    <h1 class="mt-6 text-2xl font-bold text-white tracking-tight">
+                        {{ user.name }}
+                    </h1>
 
-                    <label
-                        *ngIf="editing"
-                        class="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-blue-900 text-white flex items-center justify-center cursor-pointer hover:bg-blue-800 transition">
-
-                        📷
-
-                        <input
-                            hidden
-                            type="file"
-                            accept="image/*"
-                            (change)="onImageSelected($event)">
-
-                    </label>
-
+                    <span class="mt-2 px-4 py-1 rounded-sm border border-white/30 text-white/90 text-xs font-mono tracking-widest uppercase bg-white/5">
+                        {{ user.role }}
+                    </span>
                 </div>
 
-                <h1 class="mt-6 text-3xl font-bold text-blue-950">
-                    {{ user.name }}
-                </h1>
-
-                <span
-                    class="mt-3 px-5 py-2 rounded-full bg-blue-900 text-white font-semibold">
-
-                    {{ user.role }}
-
-                </span>
-
-                <p
-                    *ngIf="editing"
-                    class="text-sm text-gray-500 mt-4 text-center">
-
-                    Click the camera icon to change your picture.
-
-                </p>
-
+                <!-- Context Hint bottom pinned -->
+                <div class="w-full mt-6">
+                    <p *ngIf="editing" class="text-xs text-white/50 max-w-[200px] mx-auto leading-relaxed">
+                        Hover over profile avatar to upload a new photograph.
+                    </p>
+                    <p *ngIf="!editing" class="text-xs text-white/30 tracking-wider uppercase font-mono">
+                        Secure Account Profile
+                    </p>
+                    <!-- Error State Message inside Sidebar Context if it exists -->
+                    <p *ngIf="error" class="mt-2 text-xs font-mono uppercase bg-red-950 border border-red-800 text-red-400 px-3 py-2 rounded">
+                        {{ error }}
+                    </p>
+                </div>
             </div>
 
-            <!-- ================= RIGHT ================= -->
-            <div class="md:col-span-2">
+            <!-- ================= RIGHT COLUMN (DATA FIELD GRID) ================= -->
+            <div class="md:col-span-2 p-10 flex flex-col justify-between bg-white">
+                
+                <div>
+                    <!-- Header Bar -->
+                    <div class="flex justify-between items-center pb-6 mb-8 border-b-2 border-[#001830]">
+                        <h2 class="text-2xl font-black text-[#001830] tracking-tight uppercase">
+                            Account Overview
+                        </h2>
+                        <span *ngIf="editing" 
+                            class="bg-[#001830] text-white text-xs font-mono uppercase tracking-widest px-3 py-1 font-bold animate-pulse">
+                            [ Editing Mode ]
+                        </span>
+                    </div>
 
-                <div class="flex justify-between items-center mb-8">
+                    <!-- Information Fields Grid -->
+                    <div class="grid sm:grid-cols-2 gap-px bg-[#001830]/10 border border-[#001830]/10 rounded-xl overflow-hidden shadow-inner">
+                        
+                        <!-- Username Field -->
+                        <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
+                            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                                Username
+                            </label>
+                            <div *ngIf="!editing" class="text-base font-semibold text-[#001830] tracking-tight">
+                                {{ user.name }}
+                            </div>
+                            <input *ngIf="editing" [(ngModel)]="editedUser.name"
+                                class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                        </div>
 
-                    <h2 class="text-3xl font-bold text-blue-950">
-                        My Profile
-                    </h2>
+                        <!-- Email Field -->
+                        <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
+                            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                                Email Address
+                            </label>
+                            <div *ngIf="!editing" class="text-base font-semibold text-[#001830] break-all tracking-tight">
+                                {{ user.email }}
+                            </div>
+                            <input *ngIf="editing" [(ngModel)]="editedUser.email" type="email"
+                                class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                        </div>
 
-                    <span
-                        *ngIf="editing"
-                        class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-medium">
+                        <!-- System Role (Read Only) -->
+                        <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
+                            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                                Security Privilege
+                            </label>
+                            <div class="text-base font-mono font-bold text-[#001830]/80">
+                                {{ user.role }}
+                            </div>
+                        </div>
 
-                        Editing
+                        <!-- Registry Date (Read Only) -->
+                        <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
+                            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                                Registration Date
+                            </label>
+                            <div class="text-base font-semibold text-[#001830]">
+                                {{ user.createdAt | date:'dd / MM / yyyy' }}
+                            </div>
+                        </div>
 
-                    </span>
-
+                    </div>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-6">
-
-                    <!-- Username -->
-                    <div>
-
-                        <label class="block text-gray-500 mb-2">
-                            Username
-                        </label>
-
-                        <div
-                            *ngIf="!editing"
-                            class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-
-                            {{ user.name }}
-
-                        </div>
-
-                        <input
-                            *ngIf="editing"
-                            [(ngModel)]="editedUser.name"
-                            class="w-full rounded-xl border border-gray-300 px-5 py-4 focus:outline-none focus:ring-2 focus:ring-blue-900">
-
-                    </div>
-
-                    <!-- Email -->
-                    <div>
-
-                        <label class="block text-gray-500 mb-2">
-                            Email
-                        </label>
-
-                        <div
-                            *ngIf="!editing"
-                            class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-
-                            {{ user.email }}
-
-                        </div>
-
-                        <input
-                            *ngIf="editing"
-                            [(ngModel)]="editedUser.email"
-                            type="email"
-                            class="w-full rounded-xl border border-gray-300 px-5 py-4 focus:outline-none focus:ring-2 focus:ring-blue-900">
-
-                    </div>
-
-                    <!-- Role -->
-                    <div>
-
-                        <label class="block text-gray-500 mb-2">
-                            Role
-                        </label>
-
-                        <div class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-
-                            {{ user.role }}
-
-                        </div>
-
-                    </div>
-
-                    <!-- Member Since -->
-                    <div>
-
-                        <label class="block text-gray-500 mb-2">
-                            Member Since
-                        </label>
-
-                        <div class="bg-gray-100 rounded-xl px-5 py-4 font-semibold text-blue-950">
-
-                            {{ user.createdAt | date:'dd/MM/yyyy' }}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- ================= BUTTONS ================= -->
-                <div class="flex flex-wrap gap-4 mt-10">
-
-                    <!-- Normal Mode -->
-                    <button
-                        *ngIf="!editing"
-                        (click)="editProfile()"
-                        class="flex-1 min-w-[180px] bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 rounded-xl transition">
-
+                <!-- ================= MONOCHROMATIC ACTION BAR ================= -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-12 pt-6 border-t border-[#001830]/10">
+                    
+                    <!-- View Mode Buttons -->
+                    <button *ngIf="!editing" (click)="editProfile()"
+                        class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-sm">
                         Edit Profile
-
                     </button>
 
-                    <button
-                        *ngIf="!editing"
-                        (click)="changePassword()"
-                        class="flex-1 min-w-[180px] border-2 border-blue-900 text-blue-900 hover:bg-blue-50 font-semibold py-3 rounded-xl transition">
-
-                        Change Password
-
+                    <button *ngIf="!editing" (click)="changePassword()"
+                        class="border border-[#001830] text-[#001830] hover:bg-[#001830] hover:text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition">
+                        password Reset
                     </button>
 
-                    <!-- Edit Mode -->
-                    <button
-                        *ngIf="editing"
-                        (click)="saveProfile()"
-                        class="flex-1 min-w-[180px] bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition">
-
-                        Save Changes
-
+                    <!-- Edit Mode Save/Cancel Blocks -->
+                    <button *ngIf="editing" (click)="saveProfile()"
+                        class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-md">
+                        Save Identity
                     </button>
 
-                    <button
-                        *ngIf="editing"
-                        (click)="cancelEdit()"
-                        class="flex-1 min-w-[180px] border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-semibold py-3 rounded-xl transition">
-
-                        Cancel
-
+                    <button *ngIf="editing" (click)="cancelEdit()"
+                        class="border border-gray-300 text-gray-500 hover:border-[#001830] hover:text-[#001830] font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition">
+                        Discard
                     </button>
 
-                    <!-- Logout -->
-                    <button
-                        (click)="logout()"
-                        class="flex-1 min-w-[180px] bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition">
-
-                        Logout
-
+                    <!-- Persistent Outlined Logout Option -->
+                    <button (click)="logout()"
+                        class="col-span-2 sm:col-span-1 border-2 border-dashed border-red-200 text-red-700 hover:border-red-600 hover:bg-red-50 sm:hover:bg-transparent sm:border-[#001830]/20 sm:text-[#001830]/60 sm:hover:border-red-600 sm:hover:text-red-600 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition-all">
+                        Exit Session
                     </button>
 
                 </div>
