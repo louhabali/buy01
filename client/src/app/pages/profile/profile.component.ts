@@ -27,7 +27,7 @@ export class ProfileComponent implements OnInit {
   editedUser = {
     name: '',
     email: '',
-    avatar: ''
+    avatarUrl: ''
   };
 
   selectedFile?: File;
@@ -44,13 +44,13 @@ export class ProfileComponent implements OnInit {
     this.authService.getProfile().subscribe({
 
       next: (data) => {
-        console.log('Profile data loaded:', data);
+      
          this.user = data;
 
   this.editedUser = {
     name: data.name,
     email: data.email,
-    avatar: data.avatar
+    avatarUrl: data.avatar    
   };
 
   this.previewImage = data.avatar;
@@ -81,7 +81,7 @@ cancelEdit() {
   this.editedUser = {
     name: this.user.name,
     email: this.user.email,
-    avatar: this.user.avatar
+    avatarUrl: this.user.avatar
   };
 
   this.previewImage = this.user.avatar;
@@ -112,12 +112,12 @@ saveProfile(): void {
 
     username: this.editedUser.name,
     email: this.editedUser.email,
-    avatarUrl: this.editedUser.avatar
+    avatarUrl: this.editedUser.avatarUrl
 
   }).subscribe({
 
     next: (user) => {
-      
+
       this.user = user;
       this.previewImage = user.avatar;
       this.editing = false;

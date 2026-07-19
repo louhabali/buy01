@@ -14,7 +14,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: string;
-  avatarUrl?: string | null;
+  avatar?: string | null;
 }
 export interface ProfileResponse {
   id: string;

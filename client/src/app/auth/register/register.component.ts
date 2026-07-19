@@ -8,6 +8,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RegisterRequest } from '../../services/auth.service';
+import { MediaService } from '../../services/media.service';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -22,6 +23,7 @@ export class RegisterComponent {
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private mediaService = inject(MediaService);
   private router = inject(Router);
   avatarPreview: string | null = null;
 selectedAvatar: File | null = null;
@@ -54,47 +56,77 @@ selectedAvatar: File | null = null;
   reader.readAsDataURL(file);
 
 }
+// registration 
   register(): void {
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    
-    this.loading = true;
-    this.error = '';
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
 
-    const data: RegisterRequest = {
-      username: this.form.value.username!,
-      email: this.form.value.email!,
-      password: this.form.value.password!,
-      role: this.form.value.role!,
-      avatarUrl: this.form.value.avatar || null
-    };
+  this.loading = true;
+  this.error = '';
 
-    this.authService.register(data).subscribe({
+  if (this.selectedAvatar) {
 
-      next: () => {
+    this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
 
-        this.loading = false;
-        
-        // Redirect to login after successful registration
-        this.router.navigate(['/login']);
+      next: (urls) => {
+
+        this.registerUser(urls[0]);
 
       },
 
-      error: (err) => {
-
+      error: (er) => {
+        console.log(er)
         this.loading = false;
-
-        this.error =
-          err?.error?.message ??
-          'Registration failed. Please try again.';
+        this.error = 'Failed to upload avatar.';
 
       }
 
     });
 
+  } else {
+
+    this.registerUser('');
+
   }
+
+}
+private registerUser(avatarUrl: string): void {
+
+  const data: RegisterRequest = {
+
+    username: this.form.value.username!,
+    email: this.form.value.email!,
+    password: this.form.value.password!,
+    role: this.form.value.role!,
+    avatar: avatarUrl || null
+
+  };
+
+  this.authService.register(data).subscribe({
+
+    next: () => {
+
+      this.loading = false;
+
+      this.router.navigate(['/login']);
+
+    },
+
+    error: (err) => {
+
+      this.loading = false;
+
+      this.error =
+        err?.error?.message ??
+        'Registration failed. Please try again.';
+
+    }
+
+  });
+
+}
 
 }
