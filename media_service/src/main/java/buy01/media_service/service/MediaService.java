@@ -10,30 +10,35 @@ import java.util.List;
 @Service
 public class MediaService {
 
+    private static final Path UPLOAD_DIR = Paths.get("/app/uploads");
+
     public List<String> upload(MultipartFile[] images) {
 
         List<String> imageUrls = new ArrayList<>();
 
         try {
 
-            Path uploadDir = Paths.get("uploads");
-
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
+            if (!Files.exists(UPLOAD_DIR)) {
+                Files.createDirectories(UPLOAD_DIR);
             }
 
             for (MultipartFile image : images) {
 
                 String fileName =
-                        System.currentTimeMillis()
-                                + "_"
-                                + image.getOriginalFilename();
+                        System.currentTimeMillis() +
+                        "_" +
+                        image.getOriginalFilename();
 
-                Path filePath = uploadDir.resolve(fileName);
+                Path filePath = UPLOAD_DIR.resolve(fileName);
 
                 image.transferTo(filePath);
 
-                imageUrls.add("http://localhost:8083/uploads/" + fileName);
+                imageUrls.add(
+                        "https://localhost:8089/uploads/" + fileName
+                );
+
+                System.out.println("Saved image: " + filePath.toAbsolutePath());
+
             }
 
             return imageUrls;
@@ -41,7 +46,9 @@ public class MediaService {
         } catch (Exception e) {
 
             throw new RuntimeException(e);
+
         }
+
     }
 
 }

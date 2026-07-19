@@ -22,7 +22,7 @@ public class SecurityConfig {
                                 "/media/images/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST,
-                                "/media/images/**").authenticated()
+                                "/media/images/**").permitAll()
 
                         .requestMatchers(HttpMethod.DELETE,
                                 "/media/images/**").authenticated()
