@@ -14,7 +14,7 @@ import { ProductCardComponent } from '../../shared/product-card/product-card.com
   imports: [
     CommonModule,
     RouterModule,
-    // ProductCardComponent
+    ProductCardComponent
   ],
 
   templateUrl: './products.component.html',

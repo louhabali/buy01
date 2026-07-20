@@ -1,84 +1,58 @@
-<!-- Hero Banner -->
-
 <section class="hero">
 
-    <div>
+    <div class="hero-content">
 
-        <h1>Buy01 Marketplace</h1>
+        <small>BUY01 MARKETPLACE</small>
+
+        <h1>DISCOVER AMAZING PRODUCTS</h1>
 
         <p>
-            Discover thousands of amazing products.
+            Buy and sell products from trusted sellers around the world.
         </p>
 
-        <button class="btn btn-light btn-lg">
-
-            Shop Now
-
+        <button class="btn btn-light">
+            Browse Products →
         </button>
 
     </div>
 
 </section>
 
-<!-- Flash Sale -->
+<div class="products-section">
 
-<div class="container mt-5">
+    <div class="container-fluid">
 
-    <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h2 class="text-danger">
+            <div>
 
-            🔥 Flash Sale
+                <h2>Available Products</h2>
 
-        </h2>
+                <small>{{products.length}} products available</small>
 
-        <button class="btn btn-outline-danger">
+            </div>
 
-            Shop All
+            <button class="btn btn-outline-light">
 
-        </button>
+                View All
 
-    </div>
-
-    <div class="row mt-4">
-
-        <div
-            class="col-lg-2 col-md-4 col-6 mb-4"
-            *ngFor="let product of products | slice:0:6">
-
-<app-product-card
-    [product]="product"
-    [currentUserId]="currentUserId"
-    (delete)="deleteProduct($event)">
-</app-product-card>
+            </button>
 
         </div>
 
-    </div>
+        <div class="row g-4">
 
-</div>
+            <div
+                class="col-xl-2 col-lg-3 col-md-4 col-sm-6"
+                *ngFor="let product of products">
 
-<!-- Latest Products -->
+                <app-product-card
+                    [product]="product"
+                    [currentUserId]="currentUserId"
+                    (delete)="deleteProduct($event)">
+                </app-product-card>
 
-<div class="container mt-5">
-
-    <h2 class="mb-4">
-
-        Latest Products
-
-    </h2>
-
-    <div class="row">
-
-        <div
-            class="col-lg-3 col-md-4 col-sm-6 mb-4"
-            *ngFor="let product of products">
-
-<app-product-card
-    [product]="product"
-    [currentUserId]="currentUserId"
-    (delete)="deleteProduct($event)">
-</app-product-card>
+            </div>
 
         </div>
 

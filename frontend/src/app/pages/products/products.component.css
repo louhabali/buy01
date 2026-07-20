@@ -1,12 +1,37 @@
-.card img{
-    height:220px;
-    object-fit:cover;
+.products-page{
+
+    background:#08111f;
+
+    min-height:100vh;
+
+    padding:40px;
+
 }
 
-.card{
-    transition:0.3s;
+.page-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:40px;
+
 }
 
-.card:hover{
-    transform:scale(1.03);
+.page-header h2{
+
+    color:white;
+
+    font-size:36px;
+
+    font-weight:bold;
+
+}
+
+.page-header p{
+
+    color:#9ba8b5;
+
 }

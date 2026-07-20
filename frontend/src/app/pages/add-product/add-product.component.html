@@ -1,80 +1,72 @@
-<div class="container mt-5">
+<div class="add-page">
 
-    <div class="card shadow p-4">
+<div class="form-card">
 
-        <h2>
-            Add Product
-        </h2>
+<h2>
 
+Sell a Product
 
-        <div
-        class="alert alert-danger"
-        *ngIf="errorMessage">
+</h2>
 
-            {{errorMessage}}
+<p>
 
-        </div>
+Upload your product to Buy01 Marketplace
 
+</p>
 
-        <input
-        class="form-control mb-3"
-        placeholder="Product name"
-        [(ngModel)]="name">
+<input
+class="form-control"
+placeholder="Product name"
+[(ngModel)]="name">
 
+<textarea
+class="form-control"
+rows="4"
+placeholder="Description"
+[(ngModel)]="description">
+</textarea>
 
-        <textarea
-        class="form-control mb-3"
-        placeholder="Product description"
-        [(ngModel)]="description">
-        </textarea>
+<input
+class="form-control"
+type="number"
+placeholder="Price"
+[(ngModel)]="price">
 
+<input
+class="form-control"
+type="number"
+placeholder="Quantity"
+[(ngModel)]="quantity">
 
-        <input
-        class="form-control mb-3"
-        type="number"
-        placeholder="Price"
-        [(ngModel)]="price">
+<input
+class="form-control"
+type="file"
+multiple
+accept="image/*"
+(change)="onFileSelected($event)">
 
+<div class="row mt-4">
 
-        <input
-        class="form-control mb-3"
-        type="number"
-        placeholder="Quantity"
-        [(ngModel)]="quantity">
+<div
+class="col-md-3"
+*ngFor="let img of previews">
 
+<img
+[src]="img"
+class="preview">
 
-        <input
-        class="form-control mb-3"
-        type="file"
-        multiple
-        accept="image/*"
-        (change)="onFileSelected($event)">
+</div>
 
+</div>
 
-        <div class="row mb-3">
+<button
+class="btn btn-primary mt-4 w-100"
+(click)="saveProduct()">
 
-            <div
-            class="col-md-3"
-            *ngFor="let img of previews">
+Publish Product
 
-                <img
-                [src]="img"
-                class="img-thumbnail">
+</button>
 
-            </div>
-
-        </div>
-
-
-        <button
-        class="btn btn-success"
-        (click)="saveProduct()">
-
-            Save Product
-
-        </button>
-
-
-    </div>
+</div>
 
 </div>
