@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class MediaService {
 
-    private static final Path UPLOAD_DIR = Paths.get("/app/uploads");
+    private static final Path UPLOAD_DIR = Paths.get("uploads");
 
     public List<String> upload(MultipartFile[] images) {
 

@@ -21,7 +21,7 @@ export interface ProfileResponse {
   name: string;
   email: string;
   role: string;
-  avatar: string;
+  avatarUrl: string;
   createdAt: string;
 }
 export interface JwtPayload {

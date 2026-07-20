@@ -13,90 +13,92 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-
 import io.jsonwebtoken.JwtException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Handle invalid DTO validation errors 400
+    // 1. Combine DTO validation errors into one clean global string
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-        return ResponseEntity.badRequest().body(errors);
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String combinedErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(". ")); // Joins messages nicely: "Username is required. Invalid email format."
+
+        return ResponseEntity.badRequest().body(new ErrorResponse(combinedErrors));
     }
 
-    // Handle invalid enum or JSON parsing errors 400
+    // 2. Handle invalid enum or JSON parsing errors
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleInvalidFormat(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidFormat(HttpMessageNotReadableException ex) {
         return ResponseEntity
                 .badRequest()
-                .body("Invalid input format or value. Check your JSON fields and enums.");
+                .body(new ErrorResponse("Invalid input format or value. Check your JSON fields and enums."));
     }
 
-    // Handle duplicate keys (email/username uniqueness) 409
+    // 3. Handle duplicate keys (email/username uniqueness)
     @ExceptionHandler(DuplicateKeyException.class)
-    public ResponseEntity<String> handleDuplicateKey(DuplicateKeyException ex) {
+    public ResponseEntity<ErrorResponse> handleDuplicateKey(DuplicateKeyException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body("Email or username already exists.");
+                .body(new ErrorResponse("Email or username already exists."));
     }
 
-    // Handle bad credentials / authentication failures 401
+    // 4. Handle bad credentials / authentication failures
     @ExceptionHandler({ BadCredentialsException.class, AuthenticationException.class })
-    public ResponseEntity<String> handleAuthErrors(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleAuthErrors(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body("Invalid email or password.");
+                .body(new ErrorResponse("Invalid email or password."));
     }
 
-    // Handle manual bad request exceptions 400
+    // 5. Handle manual bad request exceptions
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> handleBadRequest(BadRequestException ex) {
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(ex.getMessage());
+                .body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(JwtException.class)
-    public ResponseEntity<String> handleJwt(JwtException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleJwt(JwtException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getMessage()));
     }
 
-    // Handle resource not found exceptions 404
+    // 6. Handle resource not found exceptions
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<String> handleResourceNotFound(NoResourceFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found.");
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(NoResourceFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("Resource not found."));
     }
 
-    // Handle route not found exceptions 404 (for invalid endpoints)
+    // 7. Handle route not found exceptions
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<String> handleNoHandlerFound(NoHandlerFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("The requested route " + ex.getRequestURL() + " was not found.");
+    public ResponseEntity<ErrorResponse> handleNoHandlerFound(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("The requested route " + ex.getRequestURL() + " was not found."));
     }
 
-    // Handle method not allowed 405
+    // 8. Handle method not allowed
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<String> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body("HTTP method " + ex.getMethod() + " is not allowed for this endpoint.");
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(new ErrorResponse("HTTP method " + ex.getMethod() + " is not allowed for this endpoint."));
     }
 
-    // Catch-all for unexpected exceptions 500
+    // 9. Catch-all for unexpected exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleAll(Exception ex) {
-        // Log the exception for debugging (optional)
+    public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
         ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Something went wrong. Please try again later.");
+                .body(new ErrorResponse("Something went wrong. Please try again later."));
     }
 }

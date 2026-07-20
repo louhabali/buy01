@@ -1,39 +1,35 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, ProfileResponse } from '../../services/auth.service';
-import { MediaService } from '../../services/media.service'; // Added import
-import { FormsModule } from '@angular/forms';
+import { MediaService } from '../../services/media.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [
-    FormsModule,
-    CommonModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.component.html'
 })
 export class ProfileComponent implements OnInit {
-
+  private fb = inject(NonNullableFormBuilder);
   private authService = inject(AuthService);
-  private mediaService = inject(MediaService); // Injected MediaService
+  private mediaService = inject(MediaService);
   private router = inject(Router);
 
-  user!: ProfileResponse;
+  // Form setup explicitly matches your ProfileResponse keys now
+  form = this.fb.group({
+    username: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
+    avatarUrl: [''] // Cleaned up to match backend payload key
+  });
 
+  user!: ProfileResponse;
   loading = true;
   error = '';
   editing = false;
-
-  editedUser = {
-    name: '',
-    email: '',
-    avatarUrl: ''
-  };
-
-  selectedFile?: File;
-  previewImage = '';
+  selectedAvatar: File | null = null;
+  avatarPreview = '';
 
   ngOnInit(): void {
     this.loadProfile();
@@ -41,113 +37,93 @@ export class ProfileComponent implements OnInit {
 
   loadProfile(): void {
     this.authService.getProfile().subscribe({
-      next: (data) => {
-        console.log('Profile data loaded:', data);
+      next: (data: ProfileResponse) => {
+        console.log('Loaded Profile Response:', data);
+        
         this.user = data;
-
-        this.editedUser = {
-          name: data.name,
+        
+        this.form.patchValue({
+          username: data.name,
           email: data.email,
-          avatarUrl: data.avatar    
-        };
-
-        this.previewImage = data.avatar;
+          avatarUrl: data.avatarUrl || ''
+        });
+        
+        this.avatarPreview = data.avatarUrl || '';
         this.loading = false;
       },
-      error: (ee) => {
-        console.error('Error loading profile:', ee);
+      error: (err) => {
+        console.error(err);
         this.error = "Cannot load profile";
         this.loading = false;
       }
     });
   }
 
-  editProfile() {
-    this.editing = true;
-  }
-
-  cancelEdit() {
-    this.editing = false;
-    this.selectedFile = undefined; // Clean up selected file on cancel
-
-    this.editedUser = {
-      name: this.user.name,
-      email: this.user.email,
-      avatarUrl: this.user.avatar
-    };
-
-    this.previewImage = this.user.avatar;
-  }
-
-  onImageSelected(event: Event) {
+  onAvatarSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
-    this.selectedFile = input.files[0];
-
+    this.selectedAvatar = input.files[0];
     const reader = new FileReader();
     reader.onload = () => {
-      this.previewImage = reader.result as string;
+      this.avatarPreview = reader.result as string;
     };
-    reader.readAsDataURL(this.selectedFile);
+    reader.readAsDataURL(this.selectedAvatar);
   }
 
-  // Modified saveProfile to use matching registration logic
+  editProfile() { this.editing = true; }
+
+  cancelEdit() {
+    this.editing = false;
+    this.selectedAvatar = null;
+    this.loadProfile(); // Reset to server state
+  }
+
   saveProfile(): void {
-    this.loading = true; // Turn on loader while handling the upload/save sequence
+    if (this.form.invalid) return;
+    this.loading = true;
     this.error = '';
 
-    if (this.selectedFile) {
-      // 1. Upload the image first if a new file was picked
-      this.mediaService.uploadImages([this.selectedFile]).subscribe({
-        next: (urls) => {
-          // 2. Pass the fresh bucket image URL to your profile updater
-          this.updateUserProfile(urls[0]);
-        },
-        error: (er) => {
-          console.error(er);
+    if (this.selectedAvatar) {
+      this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
+        next: (urls) => this.updateBackend(urls[0]),
+        error: () => {
           this.loading = false;
-          this.error = 'Failed to upload profile picture.';
+          this.error = 'Failed to upload avatar.';
         }
       });
     } else {
-      // 1. No new file picked, pass the current, unchanged avatar URL
-      this.updateUserProfile(this.editedUser.avatarUrl);
+      this.updateBackend(this.form.getRawValue().avatarUrl);
     }
   }
 
-  // Isolated sub-method to carry out final backend persistence payload
-  private updateUserProfile(avatarUrl: string): void {
+  private updateBackend(avatarUrl: string): void {
+    const values = this.form.getRawValue();
     this.authService.updateProfile({
-      username: this.editedUser.name,
-      email: this.editedUser.email,
-      avatarUrl: avatarUrl
+      username: values.username,
+      email: values.email,
+      avatarUrl: avatarUrl // Your authService expects 'avatarUrl' for the request body payload
     }).subscribe({
-      next: (updatedUser) => {
+      next: (updatedUser: any) => {
+        console.log('Updated Profile Response:', updatedUser);
         this.user = updatedUser;
         
-        // Re-sync editable values
-        this.editedUser = {
-          name: updatedUser.name,
+        this.form.patchValue({
+          username: updatedUser.name || updatedUser.username,
           email: updatedUser.email,
-          avatarUrl: updatedUser.avatar
-        };
+          avatarUrl: updatedUser.avatarUrl || ''
+        });
         
-        this.previewImage = updatedUser.avatar;
-        this.selectedFile = undefined; // Reset state
+        this.avatarPreview = updatedUser.avatar || updatedUser.avatarUrl || '';
         this.editing = false;
         this.loading = false;
+        this.selectedAvatar = null;
       },
       error: (err) => {
-        console.error(err);
         this.loading = false;
-        this.error = 'Failed to update profile information.';
+        this.error = err?.error?.errorMessage ?? 'Failed to update profile.';
       }
     });
-  }
-
-  changePassword(): void {
-    this.router.navigate(['/profile/password']);
   }
 
   logout(): void {

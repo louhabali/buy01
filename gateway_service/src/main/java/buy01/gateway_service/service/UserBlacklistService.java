@@ -1,17 +1,20 @@
 package buy01.gateway_service.service;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @Service
-@RequiredArgsConstructor
 public class UserBlacklistService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final ReactiveStringRedisTemplate reactiveRedisTemplate;
 
-    public boolean isBlacklisted(String userId) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(userId));
+    public UserBlacklistService(ReactiveStringRedisTemplate reactiveRedisTemplate) {
+        this.reactiveRedisTemplate = reactiveRedisTemplate;
+    }
+
+    public Mono<Boolean> isBlacklisted(String token) {
+        // Correct asynchronous reactive check
+        return reactiveRedisTemplate.hasKey(token);
     }
 }

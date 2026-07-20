@@ -30,11 +30,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private final UserServiceClient userServiceClient;
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange,
-            GatewayFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
+        
         // Public endpoints
         if (path.startsWith("/auth/login") ||
                 path.startsWith("/auth/register") ||
@@ -55,10 +55,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         String token = authHeader.substring(7);
-        // System.out.println("JWT Token: " + token);
+        
         if (!jwtService.validateToken(token)) {
             System.out.println("Missing or invalid Authorization header" + authHeader);
-
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
@@ -68,36 +67,17 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String username = claims.getSubject();
         String role = claims.get("role", String.class);
         String userId = claims.get("userId", String.class);
-        // Boolean isBlacklisted =
-        // blacklistService.isBlacklisted(addBlacklistEvent.getBlacklist(), userId);
-        if (userBlacklistService.isBlacklisted(userId)) {
 
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-            String body = """
-                    {
-                      "message": "User is blacklisted"
-                    }
-                    """;
-
-            DataBuffer buffer = exchange.getResponse()
-                    .bufferFactory()
-                    .wrap(body.getBytes(StandardCharsets.UTF_8));
-
-            return exchange.getResponse().writeWith(Mono.just(buffer));
-        }
-        return userServiceClient.exists(userId)
-                .flatMap(exists -> {
-
-                    if (!exists) {
-
+        // ⚡ Non-blocking reactive pipeline for authorization checks
+        return userBlacklistService.isBlacklisted(userId)
+                .flatMap(isBlacklisted -> {
+                    if (Boolean.TRUE.equals(isBlacklisted)) {
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
                         String body = """
                                 {
-                                  "message": "User does not exist"
+                                  "message": "User is blacklisted"
                                 }
                                 """;
 
@@ -108,18 +88,40 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         return exchange.getResponse().writeWith(Mono.just(buffer));
                     }
 
-                    ServerHttpRequest request = exchange.getRequest()
-                            .mutate()
-                            .header("X-User-Id", userId)
-                            .header("X-Username", username)
-                            .header("X-Role", role)
-                            .build();
+                    // If not blacklisted, check if the user exists
+                    return userServiceClient.exists(userId)
+                            .flatMap(exists -> {
+                                if (!exists) {
+                                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                    exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-                    ServerWebExchange newExchange = exchange.mutate()
-                            .request(request)
-                            .build();
+                                    String body = """
+                                            {
+                                              "message": "User does not exist"
+                                            }
+                                            """;
 
-                    return chain.filter(newExchange);
+                                    DataBuffer buffer = exchange.getResponse()
+                                            .bufferFactory()
+                                            .wrap(body.getBytes(StandardCharsets.UTF_8));
+
+                                    return exchange.getResponse().writeWith(Mono.just(buffer));
+                                }
+
+                                //  Mutate request and forward downstream
+                                ServerHttpRequest request = exchange.getRequest()
+                                        .mutate()
+                                        .header("X-User-Id", userId)
+                                        .header("X-Username", username)
+                                        .header("X-Role", role)
+                                        .build();
+
+                                ServerWebExchange newExchange = exchange.mutate()
+                                        .request(request)
+                                        .build();
+
+                                return chain.filter(newExchange);
+                            });
                 });
     }
 

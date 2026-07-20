@@ -57,6 +57,12 @@
                 </label>
                 <input type="email" formControlName="email" placeholder="name@domain.com"
                   class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830]/20 py-1 focus:outline-none focus:border-[#001830] transition-colors tracking-tight placeholder-gray-300">
+                
+                <!-- Front-end Validation Alerts -->
+                <div *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span *ngIf="form.get('email')?.hasError('required')">Email address is required</span>
+                  <span *ngIf="form.get('email')?.hasError('email')">Invalid email address structure</span>
+                </div>
               </div>
 
               <!-- Password Field -->
@@ -66,6 +72,11 @@
                 </label>
                 <input type="password" formControlName="password" placeholder="••••••••"
                   class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830]/20 py-1 focus:outline-none focus:border-[#001830] transition-colors tracking-tight placeholder-gray-300">
+                
+                <!-- Front-end Validation Alerts -->
+                <div *ngIf="form.get('password')?.touched && form.get('password')?.invalid" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span *ngIf="form.get('password')?.hasError('required')">Password input is required</span>
+                </div>
               </div>
 
             </div>
@@ -86,8 +97,9 @@
               </a>
             </div>
 
-            <button type="submit" [disabled]="loading"
-              class="w-full sm:w-auto bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-4 px-10 rounded-lg transition shadow-md disabled:opacity-50">
+            <!-- Disabled while loading or if front-end inputs do not meet control requirements -->
+            <button type="submit" [disabled]="loading || form.invalid"
+              class="w-full sm:w-auto bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-4 px-10 rounded-lg transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
               {{ loading ? 'Opening Session...' : 'Authenticate' }}
             </button>
 

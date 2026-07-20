@@ -1,14 +1,14 @@
 <div class="min-h-screen bg-[#0a1120] flex items-center justify-center p-6 antialiased font-sans">
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="text-center animate-pulse">
+    <!-- Loading State Blanket -->
+    <div *ngIf="loading && !user" class="text-center animate-pulse">
         <h1 class="text-white text-2xl font-semibold tracking-wider">
             Loading Profile...
         </h1>
     </div>
 
     <!-- Main Card Container -->
-    <div *ngIf="!loading && user"
+    <div *ngIf="user" [formGroup]="form"
         class="w-full max-w-5xl bg-white border border-[#001830]/10 rounded-2xl shadow-[0_20px_50px_rgba(0,24,48,0.15)] overflow-hidden">
 
         <div class="grid md:grid-cols-3">
@@ -20,9 +20,9 @@
                     <!-- Avatar Frame -->
                     <div class="relative group">
                         <div class="w-40 h-40 rounded-full border-2 border-white/20 p-1.5 transition-all duration-300 group-hover:border-white">
-                            <!-- Updated: Uses previewImage to show file changes instantly -->
-                            <img [src]="previewImage || '/dep.png'"
-                                 class="w-full h-full rounded-full object-cover">
+                            <!-- ✅ FIX: Handled missing avatar image fallback with placeholder graphics safely -->
+                            <img [src]="avatarPreview || 'https://raw.githubusercontent.com/twbs/icons/main/icons/person-circle.svg'" 
+                                 class="w-full h-full rounded-full object-cover bg-white/10">
                         </div>
 
                         <!-- Camera Overlay Filter -->
@@ -30,11 +30,12 @@
                             class="absolute inset-1.5 rounded-full bg-[#001830]/80 text-white flex flex-col items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100 backdrop-blur-xs">
                             <span class="text-xl">📷</span>
                             <span class="text-[10px] uppercase font-bold tracking-wider mt-1">Change</span>
-                            <input hidden type="file" accept="image/*" (change)="onImageSelected($event)">
+                            <input hidden type="file" accept="image/*" (change)="onAvatarSelected($event)">
                         </label>
                     </div>
 
                     <!-- Identity Details -->
+                    <!-- ✅ FIX: Read both key patterns to prevent text disappearing on component view update transitions -->
                     <h1 class="mt-6 text-2xl font-bold text-white tracking-tight">
                         {{ user.name }}
                     </h1>
@@ -52,9 +53,10 @@
                     <p *ngIf="!editing" class="text-xs text-white/30 tracking-wider uppercase font-mono">
                         Secure Account Profile
                     </p>
-                    <!-- Error State Message inside Sidebar Context if it exists -->
-                    <p *ngIf="error" class="mt-2 text-xs font-mono uppercase bg-red-950 border border-red-800 text-red-400 px-3 py-2 rounded">
-                        {{ error }}
+                    
+                    <!-- Server Validation Message Banner inside Sidebar Context -->
+                    <p *ngIf="error" class="mt-4 text-left text-xs font-mono uppercase bg-red-950 border border-red-800 text-red-400 px-3 py-2.5 rounded shadow-sm">
+                        ⚠️ {{ error }}
                     </p>
                 </div>
             </div>
@@ -82,11 +84,24 @@
                             <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
                                 Username
                             </label>
+                            
+                            <!-- View Mode -->
+                            <!-- ✅ FIX: Consistent data fallback for template view string -->
                             <div *ngIf="!editing" class="text-base font-semibold text-[#001830] tracking-tight">
                                 {{ user.name }}
                             </div>
-                            <input *ngIf="editing" [(ngModel)]="editedUser.name"
-                                class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                            
+                            <!-- Edit Mode -->
+                            <div *ngIf="editing">
+                                <input formControlName="username" type="text"
+                                    class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                                
+                                <!-- Reactive Validator Feedback -->
+                                <div *ngIf="form.get('username')?.invalid && form.get('username')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                                    <span *ngIf="form.get('username')?.errors?.['required']">Username can't be empty</span>
+                                    <span *ngIf="form.get('username')?.errors?.['minlength']">Minimum 3 characters required</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Email Field -->
@@ -94,11 +109,23 @@
                             <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
                                 Email Address
                             </label>
+                            
+                            <!-- View Mode -->
                             <div *ngIf="!editing" class="text-base font-semibold text-[#001830] break-all tracking-tight">
                                 {{ user.email }}
                             </div>
-                            <input *ngIf="editing" [(ngModel)]="editedUser.email" type="email"
-                                class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                            
+                            <!-- Edit Mode -->
+                            <div *ngIf="editing">
+                                <input formControlName="email" type="email"
+                                    class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight">
+                                
+                                <!-- Reactive Validator Feedback -->
+                                <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                                    <span *ngIf="form.get('email')?.errors?.['required']">Email layout is mandatory</span>
+                                    <span *ngIf="form.get('email')?.errors?.['email']">Must match clear mail layout</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- System Role (Read Only) -->
@@ -124,34 +151,29 @@
                     </div>
                 </div>
 
-                <!-- ================= MONOCHROMATIC ACTION BAR ================= -->
+                <!-- ================= ACTION BAR ================= -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-12 pt-6 border-t border-[#001830]/10">
                     
-                    <!-- View Mode Buttons -->
+                    <!-- View Mode Controls -->
                     <button *ngIf="!editing" (click)="editProfile()"
                         class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-sm">
                         Edit Profile
                     </button>
 
-                    <button *ngIf="!editing" (click)="changePassword()"
-                        class="border border-[#001830] text-[#001830] hover:bg-[#001830] hover:text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition">
-                        password Reset
+                    <!-- Edit Mode Controls -->
+                    <button *ngIf="editing" (click)="saveProfile()" [disabled]="loading || form.invalid"
+                        class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+                        {{ loading ? 'Saving...' : 'Save Identity' }}
                     </button>
 
-                    <!-- Edit Mode Save/Cancel Blocks -->
-                    <button *ngIf="editing" (click)="saveProfile()"
-                        class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-md">
-                        Save Identity
-                    </button>
-
-                    <button *ngIf="editing" (click)="cancelEdit()"
-                        class="border border-gray-300 text-gray-500 hover:border-[#001830] hover:text-[#001830] font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition">
+                    <button *ngIf="editing" (click)="cancelEdit()" [disabled]="loading"
+                        class="border border-gray-300 text-gray-500 hover:border-[#001830] hover:text-[#001830] font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition disabled:opacity-40">
                         Discard
                     </button>
 
                     <!-- Persistent Outlined Logout Option -->
-                    <button (click)="logout()"
-                        class="col-span-2 sm:col-span-1 border-2 border-dashed border-red-200 text-red-700 hover:border-red-600 hover:bg-red-50 sm:hover:bg-transparent sm:border-[#001830]/20 sm:text-[#001830]/60 sm:hover:border-red-600 sm:hover:text-red-600 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition-all">
+                    <button (click)="logout()" [disabled]="loading"
+                        class="col-span-2 sm:col-span-1 border-2 border-dashed border-red-200 text-red-700 hover:border-red-600 hover:bg-red-50 sm:hover:bg-transparent sm:border-[#001830]/20 sm:text-[#001830]/60 sm:hover:border-red-600 sm:hover:text-red-600 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition-all disabled:opacity-40">
                         Exit Session
                     </button>
 

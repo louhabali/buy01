@@ -1,15 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
+import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RegisterRequest } from '../../services/auth.service';
 import { MediaService } from '../../services/media.service';
+
+export type UserRole = 'SELLER' | 'CLIENT';
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -21,14 +19,15 @@ import { MediaService } from '../../services/media.service';
   ],
   templateUrl: './register.component.html'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
 
-  private fb = inject(FormBuilder);
+  private fb = inject(NonNullableFormBuilder);
   private authService = inject(AuthService);
   private mediaService = inject(MediaService);
   private router = inject(Router);
+
   avatarPreview: string | null = null;
-selectedAvatar: File | null = null;
+  selectedAvatar: File | null = null;
   loading = false;
   error = '';
 
@@ -36,99 +35,79 @@ selectedAvatar: File | null = null;
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: ['SELLER', Validators.required],
-    avatar: ['']
+    role: ['SELLER' as UserRole, [Validators.required, Validators.pattern(/^(SELLER|CLIENT)$/)]]
   });
-  onAvatarSelected(event: Event): void {
 
-  const input = event.target as HTMLInputElement;
-
-  if (!input.files?.length) return;
-
-  const file = input.files[0];
-
-  this.selectedAvatar = file;
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    this.avatarPreview = reader.result as string;
-  };
-
-  reader.readAsDataURL(file);
-
-}
-// registration 
-  register(): void {
-
-  if (this.form.invalid) {
-    this.form.markAllAsTouched();
-    return;
-  }
-
-  this.loading = true;
-  this.error = '';
-
-  if (this.selectedAvatar) {
-
-    this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
-
-      next: (urls) => {
-
-        this.registerUser(urls[0]);
-
-      },
-
-      error: (er) => {
-        console.log(er)
-        this.loading = false;
-        this.error = 'Failed to upload avatar.';
-
+  ngOnInit(): void {
+    // Automatically sweeps away the global error banner whenever the user updates any input
+    this.form.valueChanges.subscribe(() => {
+      if (this.error) {
+        this.error = '';
       }
-
     });
-
-  } else {
-
-    this.registerUser('');
-
   }
 
-}
-private registerUser(avatarUrl: string): void {
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
 
-  const data: RegisterRequest = {
+    if (!input.files?.length) return;
 
-    username: this.form.value.username!,
-    email: this.form.value.email!,
-    password: this.form.value.password!,
-    role: this.form.value.role!,
-    avatarUrl
+    const file = input.files[0];
+    this.selectedAvatar = file;
 
-  };
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.avatarPreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
 
-  this.authService.register(data).subscribe({
-
-    next: () => {
-
-      this.loading = false;
-
-      this.router.navigate(['/login']);
-
-    },
-
-    error: (err) => {
-
-      this.loading = false;
-
-      this.error =
-        err?.error?.message ??
-        'Registration failed. Please try again.';
-
+  register(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
 
-  });
+    this.loading = true;
+    this.error = '';
 
-}
+    if (this.selectedAvatar) {
+      this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
+        next: (urls) => {
+          this.registerUser(urls[0]);
+        },
+        error: (er) => {
+          console.error('Avatar upload failed:', er);
+          this.loading = false;
+          this.error = 'Failed to upload avatar.';
+        }
+      });
+    } else {
+      this.registerUser('');
+    }
+  }
 
+  private registerUser(avatarUrl: string): void {
+    const formValues = this.form.getRawValue();
+
+    const data: RegisterRequest = {
+      username: formValues.username,
+      email: formValues.email,
+      password: formValues.password,
+      role: formValues.role,
+      avatarUrl
+    };
+
+    this.authService.register(data).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Backend registration error:', err);
+        this.loading = false;
+        this.error = err?.error?.errorMessage ?? 'Registration failed. Please try again later.';
+      }
+    });
+  }
 }

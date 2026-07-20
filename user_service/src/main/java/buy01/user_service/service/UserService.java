@@ -26,21 +26,21 @@ import com.mongodb.DuplicateKeyException;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    // communicate 
+    // communicate
     private final UserEventProducer producer;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserBlacklistService blacklistService;
 
-    public Map<String, Object> register(String username, String email, String password, Role role, String avatarUrl) {
+    public Map<String, Object> register(String username, String email, String password, String role, String avatarUrl) {
         String cleanEmail = email.toLowerCase().trim();
         if (userRepository.findByEmail(cleanEmail).isPresent()) {
             throw new BadRequestException("Email already exists");
         } else if (userRepository.findByUsername(username).isPresent()) {
             throw new BadRequestException("Username already exists");
         }
-        Role checkedRole = (role == Role.SELLER) ? Role.SELLER : Role.CLIENT;
+        Role checkedRole = (role == "SELLER") ? Role.SELLER : Role.CLIENT;
         User user = User.builder()
                 .username(username)
                 .email(cleanEmail)
@@ -80,7 +80,7 @@ public class UserService {
 
     @Cacheable(value = "profiles", key = "#userId")
     public ProfileResponse getProfile(String userId) {
-        System.out.println("Fetching profile from mongodb: " + userId);
+       
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -98,6 +98,19 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        userRepository.findByUsername(profile.getUsername()).ifPresent(existing -> {
+            if (!existing.getId().equals(userId)) {
+                
+                throw new BadRequestException("Username already taken by another account");
+            }
+        });
+
+       
+        userRepository.findByEmail(profile.getEmail()).ifPresent(existing -> {
+            if (!existing.getId().equals(userId)) {
+                throw new BadRequestException("Email address already registered by another account");
+            }
+        });
         user.setUsername(profile.getUsername());
         user.setEmail(profile.getEmail());
         user.setAvatarUrl(profile.getAvatarUrl());

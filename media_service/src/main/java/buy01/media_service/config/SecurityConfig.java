@@ -16,18 +16,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
 
-                .authorizeHttpRequests(auth -> auth
-
-                        .requestMatchers(HttpMethod.GET,
-                                "/media/images/**").permitAll()
-
-                        .requestMatchers(HttpMethod.POST,
-                                "/media/images/**").permitAll()
-
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/media/images/**").authenticated()
-
-                        .anyRequest().permitAll())
+               .authorizeHttpRequests(auth -> auth
+    .requestMatchers("/media/**", "/uploads/**").permitAll()
+    .anyRequest().permitAll()
+)
 
                 .httpBasic(Customizer.withDefaults());
 

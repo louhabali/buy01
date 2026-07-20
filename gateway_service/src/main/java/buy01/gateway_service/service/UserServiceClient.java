@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class UserServiceClient {
 
-    WebClient webClient = WebClient.create("http://user-service:8081");
+    WebClient webClient = WebClient.create("http://localhost:8081");
 
     public Mono<Boolean> exists(String userId) {
 
