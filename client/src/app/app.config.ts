@@ -8,6 +8,7 @@ import {
 
 import { authInterceptor } from '../interceptors/jwt.interceptor';
 
+import { errorInterceptor } from '../interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
 
@@ -15,7 +16,7 @@ export const appConfig: ApplicationConfig = {
      provideRouter(routes),
     provideHttpClient(
       withInterceptors([
-        authInterceptor
+        authInterceptor , errorInterceptor
       ])
     )
 
