@@ -21,7 +21,8 @@ export class ProfileComponent implements OnInit {
   form = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
-    avatarUrl: [''] // Cleaned up to match backend payload key
+    avatarUrl: [''] ,
+    role: ['', [Validators.required]]
   });
 
   user!: ProfileResponse;
@@ -45,7 +46,8 @@ export class ProfileComponent implements OnInit {
         this.form.patchValue({
           username: data.name,
           email: data.email,
-          avatarUrl: data.avatarUrl || ''
+          avatarUrl: data.avatarUrl || 'none' ,
+          role: data.role || 'CLIENT'
         });
         
         this.avatarPreview = data.avatarUrl || '';
@@ -102,7 +104,8 @@ export class ProfileComponent implements OnInit {
     this.authService.updateProfile({
       username: values.username,
       email: values.email,
-      avatarUrl: avatarUrl // Your authService expects 'avatarUrl' for the request body payload
+      avatarUrl: avatarUrl,
+      role: values.role 
     }).subscribe({
       next: (updatedUser: any) => {
         console.log('Updated Profile Response:', updatedUser);
@@ -111,7 +114,8 @@ export class ProfileComponent implements OnInit {
         this.form.patchValue({
           username: updatedUser.name || updatedUser.username,
           email: updatedUser.email,
-          avatarUrl: updatedUser.avatarUrl || ''
+          avatarUrl: updatedUser.avatarUrl || '',
+          role: updatedUser.role || 'CLIENT'
         });
         
         this.avatarPreview = updatedUser.avatar || updatedUser.avatarUrl || '';

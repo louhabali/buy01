@@ -20,7 +20,6 @@
                     <!-- Avatar Frame -->
                     <div class="relative group">
                         <div class="w-40 h-40 rounded-full border-2 border-white/20 p-1.5 transition-all duration-300 group-hover:border-white">
-                            <!-- ✅ FIX: Handled missing avatar image fallback with placeholder graphics safely -->
                             <img [src]="avatarPreview || 'https://raw.githubusercontent.com/twbs/icons/main/icons/person-circle.svg'" 
                                  class="w-full h-full rounded-full object-cover bg-white/10">
                         </div>
@@ -35,7 +34,6 @@
                     </div>
 
                     <!-- Identity Details -->
-                    <!-- ✅ FIX: Read both key patterns to prevent text disappearing on component view update transitions -->
                     <h1 class="mt-6 text-2xl font-bold text-white tracking-tight">
                         {{ user.name }}
                     </h1>
@@ -56,7 +54,7 @@
                     
                     <!-- Server Validation Message Banner inside Sidebar Context -->
                     <p *ngIf="error" class="mt-4 text-left text-xs font-mono uppercase bg-red-950 border border-red-800 text-red-400 px-3 py-2.5 rounded shadow-sm">
-                        ⚠️ {{ error }}
+                     {{ error }}
                     </p>
                 </div>
             </div>
@@ -86,7 +84,6 @@
                             </label>
                             
                             <!-- View Mode -->
-                            <!-- ✅ FIX: Consistent data fallback for template view string -->
                             <div *ngIf="!editing" class="text-base font-semibold text-[#001830] tracking-tight">
                                 {{ user.name }}
                             </div>
@@ -128,13 +125,28 @@
                             </div>
                         </div>
 
-                        <!-- System Role (Read Only) -->
+                        <!-- Security Privilege Dropdown Field -->
                         <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
                             <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
                                 Security Privilege
                             </label>
-                            <div class="text-base font-mono font-bold text-[#001830]/80">
+
+                            <!-- View Mode -->
+                            <div *ngIf="!editing" class="text-base font-mono font-bold text-[#001830]/80">
                                 {{ user.role }}
+                            </div>
+
+                            <!-- ✅ Edit Mode Dropdown -->
+                            <div *ngIf="editing">
+                                <select formControlName="role" 
+                                    class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight cursor-pointer">
+                                    <option value="CLIENT">CLIENT</option>
+                                    <option value="SELLER">SELLER</option>
+                                </select>
+                                
+                                <div *ngIf="form.get('role')?.invalid && form.get('role')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                                    <span>Selecting a security role is mandatory</span>
+                                </div>
                             </div>
                         </div>
 

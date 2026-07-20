@@ -114,6 +114,7 @@ public class UserService {
         user.setUsername(profile.getUsername());
         user.setEmail(profile.getEmail());
         user.setAvatarUrl(profile.getAvatarUrl());
+        user.setRole(profile.getRole());
 
         User updatedUser = userRepository.save(user);
 

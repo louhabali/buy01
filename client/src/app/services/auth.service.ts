@@ -65,6 +65,7 @@ updateProfile(profile: {
   username: string;
   email: string;
   avatarUrl: string;
+  role : string
 }) {
 
   return this.http.put<ProfileResponse>(

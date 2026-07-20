@@ -36,20 +36,20 @@ public class UserController {
     @GetMapping("/profile")
     public ProfileResponse profile(
             @RequestHeader("X-User-Id") String userId) {
-                System.out.println("Profile request for userId: " + userId);
+           
         return us.getProfile(userId);
     }
     @PutMapping("/profile")
     public ProfileResponse updateProfile(
             @RequestHeader("X-User-Id") String userId,
             @RequestBody ProfileRequest profile) {
-                System.out.println("ha li wssl azbi : " + profile);
+           
         return us.updateProfile(userId, profile);
     }
     @DeleteMapping("/profile")
     public Map<String, Object> deleteProfile(
             @RequestHeader("X-User-Id") String userId) {
-                System.out.println("Delete profile request for userId: " + userId);
+            
         return us.deleteProfile(userId);
     }
 
