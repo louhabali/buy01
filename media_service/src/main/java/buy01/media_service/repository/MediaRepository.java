@@ -2,11 +2,14 @@ package buy01.media_service.repository;
 
 import buy01.media_service.model.Media;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
-public interface MediaRepository extends MongoRepository<Media, Long> {
+@Repository
+public interface MediaRepository extends MongoRepository<Media,String> {
 
-    Optional<Media> findByFileName(String fileName);
+    List<Media> findByProductId(String productId);
 
 }

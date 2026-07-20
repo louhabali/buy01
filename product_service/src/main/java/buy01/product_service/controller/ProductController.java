@@ -28,26 +28,77 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
-            @RequestParam String name,
-            @RequestParam Float price,
-            @RequestParam(required = false) MultipartFile[] images) {
 
-        return productService.createProduct(name, price, images);
+            @RequestHeader("X-User-Id")
+            String userId,
+
+            @RequestParam
+            String name,
+
+            @RequestParam
+            String description,
+
+            @RequestParam
+            Double price,
+
+            @RequestParam
+            Integer quantity,
+
+            @RequestParam(required = false)
+            MultipartFile[] images
+    ) {
+
+        return productService.createProduct(
+                name,
+                description,
+                price,
+                quantity,
+                images,
+                userId
+        );
     }
 
-    @PutMapping(value="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product updateProduct(
-            @PathVariable String id,
-            @RequestParam String name,
-            @RequestParam Float price,
-            @RequestParam(required = false) MultipartFile[] images) {
 
-        return productService.updateProduct(id, name, price, images);
+            @PathVariable
+            String id,
+
+            @RequestHeader("X-User-Id")
+            String userId,
+
+            @RequestParam
+            String name,
+
+            @RequestParam
+            String description,
+
+            @RequestParam
+            Double price,
+
+            @RequestParam
+            Integer quantity,
+
+            @RequestParam(required = false)
+            MultipartFile[] images
+    ) {
+
+        return productService.updateProduct(
+                id,
+                name,
+                description,
+                price,
+                quantity,
+                images,
+                userId
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProduct(@PathVariable String id) {
-        productService.deleteProduct(id);
+    public void deleteProduct(
+            @PathVariable String id,
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        productService.deleteProduct(id, userId);
     }
-
 }

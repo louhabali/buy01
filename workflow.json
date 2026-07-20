@@ -81,8 +81,10 @@
       "model_example": {
         "id": "string",
         "name": "string",
+        "description": "string",
         "price": "number",
-        "sellerId": "string",
+        "quantity": "number",
+        "userId": "string",
         "imageUrls": ["string"]
       }
     },

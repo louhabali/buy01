@@ -1,81 +1,80 @@
 <div class="container mt-5">
 
+    <div class="card shadow p-4">
 
-<div class="card shadow p-4">
-
-
-<h2>
-Add Product
-</h2>
+        <h2>
+            Add Product
+        </h2>
 
 
+        <div
+        class="alert alert-danger"
+        *ngIf="errorMessage">
 
-<div
-class="alert alert-danger"
-*ngIf="errorMessage">
+            {{errorMessage}}
 
-{{errorMessage}}
-
-</div>
-
+        </div>
 
 
-<input
-class="form-control mb-3"
-placeholder="Product name"
-[(ngModel)]="name">
+        <input
+        class="form-control mb-3"
+        placeholder="Product name"
+        [(ngModel)]="name">
 
 
-
-<input
-class="form-control mb-3"
-type="number"
-placeholder="Price"
-[(ngModel)]="price">
-
+        <textarea
+        class="form-control mb-3"
+        placeholder="Product description"
+        [(ngModel)]="description">
+        </textarea>
 
 
-<input
-class="form-control mb-3"
-type="file"
-multiple
-accept="image/*"
-(change)="onFileSelected($event)">
+        <input
+        class="form-control mb-3"
+        type="number"
+        placeholder="Price"
+        [(ngModel)]="price">
 
 
-
-<div class="row mb-3">
-
-
-<div
-class="col-md-3"
-*ngFor="let img of previews">
+        <input
+        class="form-control mb-3"
+        type="number"
+        placeholder="Quantity"
+        [(ngModel)]="quantity">
 
 
-<img
-[src]="img"
-class="img-thumbnail">
+        <input
+        class="form-control mb-3"
+        type="file"
+        multiple
+        accept="image/*"
+        (change)="onFileSelected($event)">
 
 
-</div>
+        <div class="row mb-3">
+
+            <div
+            class="col-md-3"
+            *ngFor="let img of previews">
+
+                <img
+                [src]="img"
+                class="img-thumbnail">
+
+            </div>
+
+        </div>
 
 
-</div>
+        <button
+        class="btn btn-success"
+        (click)="saveProduct()">
+
+            Save Product
+
+        </button>
 
 
-
-
-<button
-class="btn btn-success"
-(click)="saveProduct()">
-
-Save Product
-
-</button>
-
-
-
-</div>
-
+    </div>
 
 </div>

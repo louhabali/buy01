@@ -26,7 +26,11 @@ export class AddProductComponent {
 
   name = '';
 
+  description = '';
+
   price = 0;
+
+  quantity = 0;
 
 
   selectedFiles: File[] = [];
@@ -65,8 +69,7 @@ export class AddProductComponent {
       if(!file.type.startsWith('image/')){
 
 
-        this.errorMessage =
-        "Only images are allowed";
+        this.errorMessage += "Only images are allowed\n";
 
 
         continue;
@@ -119,16 +122,18 @@ export class AddProductComponent {
   saveProduct(){
 
 
-    if(!this.name || this.price <=0){
+    if(
+    !this.name ||
+    !this.description ||
+    this.price <= 0 ||
+    this.quantity < 0
+){
 
+    this.errorMessage =
+    "Name, description, price and quantity are required";
 
-      this.errorMessage =
-      "Name and price are required";
-
-
-      return;
-
-    }
+    return;
+}
 
 
 
@@ -142,14 +147,20 @@ export class AddProductComponent {
       this.name
     );
 
-
+    formData.append(
+    "description",
+    this.description
+);
 
     formData.append(
       "price",
       this.price.toString()
     );
 
-
+    formData.append(
+    "quantity",
+    this.quantity.toString()
+);
 
     this.selectedFiles.forEach(file=>{
 

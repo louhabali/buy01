@@ -1,250 +1,94 @@
 package buy01.media_service.service;
 
-import buy01.media_service.model.Media;
-import buy01.media_service.repository.MediaRepository;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 
 @Service
 public class MediaService {
 
+    private static final Path UPLOAD_DIR = Paths.get("/app/uploads");
 
-    private final MediaRepository repository;
+    private static final long MAX_SIZE =
+            2 * 1024 * 1024; // 2 MB
 
-
-    private final Path uploadDir = Paths.get("uploads");
-
-
-    public MediaService(MediaRepository repository) {
-        this.repository = repository;
-    }
 
     public List<String> upload(MultipartFile[] images) {
 
-
         List<String> imageUrls = new ArrayList<>();
-
 
         try {
 
-
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
+            if (!Files.exists(UPLOAD_DIR)) {
+                Files.createDirectories(UPLOAD_DIR);
             }
-
-
-            Authentication auth =
-                    SecurityContextHolder
-                            .getContext()
-                            .getAuthentication();
-
-
 
             for (MultipartFile image : images) {
 
-
-                if (image.isEmpty()) {
-                    throw new RuntimeException("Empty file");
-                }
-
-
-
-                if (image.getSize() > 2 * 1024 * 1024) {
-                    throw new RuntimeException(
-                            "Image exceeds 2 MB"
-                    );
-                }
-
-
-
-                String contentType =
-                        image.getContentType();
-
-
-
-                if (contentType == null ||
-                        !contentType.startsWith("image/")) {
-
-                    throw new RuntimeException(
-                            "Only images are allowed"
-                    );
-                }
-
-
-
-                String original =
-                        image.getOriginalFilename();
-
-
-
-                String extension = "";
-
-
-
-                if (original != null &&
-                        original.contains(".")) {
-
-                    extension =
-                            original.substring(
-                                    original.lastIndexOf(".")
-                            );
-                }
-
+                // Validation avant sauvegarde
+                validateImage(image);
 
 
                 String fileName =
-                        UUID.randomUUID()
-                                + extension;
+                        System.currentTimeMillis()
+                        + "_"
+                        + image.getOriginalFilename();
 
 
-
-                Path destination =
-                        uploadDir.resolve(fileName);
+                Path filePath = UPLOAD_DIR.resolve(fileName);
 
 
-
-                image.transferTo(destination);
-
+                image.transferTo(filePath);
 
 
-                // String url =
-                //         "http://localhost:8083/media/images/"
-                //                 + fileName;
-
-                String url =
-                        "https://localhost:8089/media/images/"
-                                + fileName;
-
-                Media media =
-                        Media.builder()
-                                .fileName(fileName)
-                                .url(url)
-                                .sellerId(auth.getName())
-                                .build();
+                imageUrls.add(
+                        "https://localhost:8089/uploads/" + fileName
+                );
 
 
-
-                repository.save(media);
-
-
-
-                imageUrls.add(url);
-
+                System.out.println(
+                        "Saved image: " + filePath.toAbsolutePath()
+                );
             }
-
 
 
             return imageUrls;
 
 
-
         } catch (Exception e) {
 
-            throw new RuntimeException(
-                    "Upload failed",
-                    e
-            );
+            throw new RuntimeException(e);
+
         }
     }
 
-    public Resource getImage(String fileName) {
+
+    private void validateImage(MultipartFile image) {
+
+        if (image.isEmpty()) {
+            throw new RuntimeException(
+                    "Image cannot be empty"
+            );
+        }
 
 
-        try {
-
-
-            Path file =
-                    uploadDir.resolve(fileName);
-
-
-
-            Resource resource =
-                    new UrlResource(
-                            file.toUri()
-                    );
-
-
-
-            if (!resource.exists()) {
-
-                throw new RuntimeException(
-                        "Image not found"
-                );
-            }
-
-
-
-            return resource;
-
-
-
-        } catch (MalformedURLException e) {
-
+        if (image.getContentType() == null ||
+                !image.getContentType().startsWith("image/")) {
 
             throw new RuntimeException(
-                    "Invalid file",
-                    e
+                    "Only images are allowed"
+            );
+        }
+
+
+        if (image.getSize() > MAX_SIZE) {
+
+            throw new RuntimeException(
+                    "Image size must be less than 2MB"
             );
         }
     }
-
-    public void delete(String fileName) {
-
-
-        try {
-            
-            Media media =
-            repository.findByFileName(fileName)
-                .orElseThrow(
-                        () -> new RuntimeException(
-                                "Image not found"
-                        )
-                );
-
-            Authentication auth =
-                    SecurityContextHolder
-                            .getContext()
-                            .getAuthentication();
-
-            if (!media.getSellerId()
-                    .equals(auth.getName())) {
-
-
-                throw new SecurityException(
-                        "Unauthorized"
-                );
-            }
-
-            Path file =
-                    uploadDir.resolve(
-                            media.getFileName()
-                    );
-
-            Files.deleteIfExists(file);
-
-            repository.delete(media);
-
-        } catch (Exception e) {
-
-
-            throw new RuntimeException(
-                    "Delete failed",
-                    e
-            );
-        }
-    }
-
 }

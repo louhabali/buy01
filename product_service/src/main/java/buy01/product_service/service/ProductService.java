@@ -4,8 +4,6 @@ import buy01.product_service.client.MediaClient;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,32 +22,31 @@ public class ProductService {
     }
 
     public Product getProduct(String id) {
-
         return repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     public Product createProduct(
             String name,
-            Float price,
-            MultipartFile[] images) {
-
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
-                String sellerId = auth.getName();
+            String description,
+            Double price,
+            Integer quantity,
+            MultipartFile[] images,
+            String userId) {
 
         List<String> imageUrls = new ArrayList<>();
 
-        if(images != null && images.length > 0){
-
+        if (images != null && images.length > 0) {
             imageUrls = mediaClient.uploadImages(images);
-
         }
 
         Product product = Product.builder()
                 .name(name)
+                .description(description)
                 .price(price)
-                .sellerId(sellerId)
+                .quantity(quantity)
+                // .sellerId(userId)
+                .userId(userId)
                 .imageUrls(imageUrls)
                 .build();
 
@@ -59,52 +56,48 @@ public class ProductService {
     public Product updateProduct(
             String id,
             String name,
-            Float price,
-            MultipartFile[] images){
-
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        String sellerId = auth.getName();
+            String description,
+            Double price,
+            Integer quantity,
+            MultipartFile[] images,
+            String userId) {
 
         Product product = repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if(!product.getSellerId().equals(sellerId)){
+        if (!product.getUserId().equals(userId)) {
             throw new SecurityException("You are not the owner");
         }
 
         product.setName(name);
+        product.setDescription(description);
         product.setPrice(price);
+        product.setQuantity(quantity);
 
-        if(images != null && images.length > 0){
+        if (images != null && images.length > 0) {
 
-            List<String> imageUrls =
-                    mediaClient.uploadImages(images);
+            List<String> imageUrls = mediaClient.uploadImages(images);
 
             product.setImageUrls(imageUrls);
         }
 
         return repository.save(product);
-
     }
 
-    public void deleteProduct(String id){
-
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        String sellerId = auth.getName();
+    public void deleteProduct(String id, String userId) {
 
         Product product = repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if(!product.getSellerId().equals(sellerId)){
+        if (!product.getUserId().equals(userId)) {
             throw new SecurityException("You are not the owner");
         }
 
         repository.delete(product);
-
     }
 
+    // Kafka
+    public void deleteProductsByUserId(String userId) {
+        repository.deleteByUserId(userId);
+    }
 }

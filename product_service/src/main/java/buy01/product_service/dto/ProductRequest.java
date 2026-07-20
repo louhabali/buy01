@@ -2,22 +2,24 @@ package buy01.product_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
-import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
-
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class ProductRequest {
 
-    @NotBlank(message = "name is required")
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @Positive(message = "price must be positive")
-    private Float price;
+    @NotBlank(message = "Description is required")
+    private String description;
 
-    // @NotBlank(message = "sellerId is required")
-    // private String sellerId;
+    @Positive(message = "Price must be greater than 0")
+    private Double price;
+
+    @PositiveOrZero(message = "Quantity cannot be negative")
+    private Integer quantity;
 
     private MultipartFile[] images;
 }

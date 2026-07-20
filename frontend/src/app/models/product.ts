@@ -4,9 +4,13 @@ export interface Product {
 
   name: string;
 
+  description: string;
+
   price: number;
 
-  sellerId?: string;
+  quantity: number;
+
+  userId?: string;
 
   imageUrls: string[];
 

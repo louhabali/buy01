@@ -17,10 +17,13 @@ public class Product {
 
     private String name;
 
-    private Float price;
+    private String description;
 
-    private String sellerId;
+    private Double price;
 
-    // private String[] imageUrls;
+    private Integer quantity;
+
+    private String userId;
+
     private List<String> imageUrls;
 }
