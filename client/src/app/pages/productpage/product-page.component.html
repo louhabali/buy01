@@ -18,8 +18,9 @@
   </div>
 
   <!-- Top Global Error Banner -->
-  <div *ngIf="error" class="w-full max-w-5xl mb-4 bg-red-950 border border-red-800 text-red-400 p-4 rounded-xl font-mono text-xs uppercase shadow-sm">
-    {{ error }}
+  <div *ngIf="error" class="w-full max-w-5xl mb-4 bg-red-950/80 border border-red-800 text-red-400 p-4 rounded-xl font-mono text-xs uppercase shadow-sm flex items-center justify-between">
+    <span>{{ error }}</span>
+    <button (click)="error = null" class="text-red-400 hover:text-white ml-4 font-bold">✕</button>
   </div>
 
   <!-- Main Card Container -->
@@ -69,9 +70,9 @@
               *ngFor="let img of imagePreviews; let i = index" 
               (click)="selectImage(i)"
               [ngClass]="{
-  'border-white': i === selectedImageIndex,
-  'border-white/20': i !== selectedImageIndex
-}"
+                'border-white': i === selectedImageIndex,
+                'border-white/20': i !== selectedImageIndex
+              }"
               class="w-12 h-12 rounded-lg border-2 bg-white/10 overflow-hidden flex-shrink-0 cursor-pointer transition-all">
               <img [src]="img" alt="Product thumbnail" class="w-full h-full object-contain p-0.5" />
             </button>
@@ -226,8 +227,11 @@
 
             <button 
               type="button"
-              (click)="onDelete()"
-              class="border-2 border-dashed border-red-200 text-red-700 hover:border-red-600 hover:bg-red-50 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition cursor-pointer">
+              (click)="openDeleteModal()"
+              class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 hover:border-red-300 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition cursor-pointer flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
               Delete Item
             </button>
           </ng-container>
@@ -257,6 +261,52 @@
 
     </div>
 
+  </div>
+
+  <!-- Delete Confirmation Modal (AP Style) -->
+  <div *ngIf="showDeleteModal" 
+       (click)="closeDeleteModal()"
+       class="fixed inset-0 z-50 bg-[#0a1120]/80 backdrop-blur-sm flex items-center justify-center p-4">
+    
+    <div (click)="$event.stopPropagation()"
+         class="bg-[#001830] border border-red-500/30 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+      
+      <!-- Top Warning Icon -->
+      <div class="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4 text-red-400 mx-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+
+      <!-- Text Content -->
+      <div class="text-center mb-6">
+        <h3 class="text-lg font-bold text-white uppercase tracking-wider">Confirm Deletion</h3>
+        <p class="text-xs font-mono text-gray-300 mt-2 leading-relaxed">
+          Are you sure you want to remove <span class="text-white font-bold">"{{ product?.name }}"</span>? This action cannot be undone.
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
+        <button 
+          type="button"
+          (click)="closeDeleteModal()" 
+          [disabled]="isDeleting"
+          class="w-full text-xs font-mono uppercase tracking-wider text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 py-3 rounded-lg transition border border-white/10 cursor-pointer disabled:opacity-50">
+          Cancel
+        </button>
+
+        <button 
+          type="button"
+          (click)="confirmDelete()" 
+          [disabled]="isDeleting"
+          class="w-full text-xs font-mono uppercase tracking-wider text-white bg-red-600 hover:bg-red-500 py-3 rounded-lg transition shadow-lg shadow-red-900/30 font-bold cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+          <span *ngIf="isDeleting" class="animate-spin text-xs">⏳</span>
+          {{ isDeleting ? 'Deleting...' : 'Confirm' }}
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <!-- Fullscreen Image Viewer Modal -->

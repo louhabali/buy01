@@ -16,7 +16,7 @@ export class ProductCardComponent {
 
   @Output() edit = new EventEmitter<Product>();
   @Output() delete = new EventEmitter<string>();
-
+  showDeleteConfirm = false;
   constructor(private router: Router) {}
 
   get isOwner(): boolean {
@@ -62,12 +62,23 @@ export class ProductCardComponent {
     event.stopPropagation();
     this.edit.emit(this.product);
   }
+  openDeleteConfirm(event: Event): void {
+    event.stopPropagation();
+    this.showDeleteConfirm = true;
+  }
 
-  onDelete(event: Event): void {
+  cancelDelete(event: Event): void {
+    event.stopPropagation();
+    this.showDeleteConfirm = false;
+  }
+
+  confirmDelete(event: Event): void {
     event.stopPropagation();
     const productId = this.getProductId();
-    if (productId && confirm(`Delete "${this.product?.name}"?`)) {
+    if (productId) {
       this.delete.emit(productId);
     }
+    this.showDeleteConfirm = false;
   }
+ 
 }

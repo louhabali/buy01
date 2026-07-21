@@ -24,7 +24,9 @@ export class ProductPageComponent implements OnInit {
   selectedImageIndex = 0;
   isLoading = true;
   isSaving = false;
+  isDeleting = false;
   editing = false;
+  showDeleteModal = false;
   isFullViewOpen = false;
   error: string | null = null;
 
@@ -167,14 +169,30 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
-  onDelete(): void {
+  openDeleteModal(): void {
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+  }
+
+  confirmDelete(): void {
     if (!this.product) return;
-    if (confirm(`Are you sure you want to delete "${this.product.name}"?`)) {
-      this.productService.deleteProduct(this.product.id!).subscribe({
-        next: () => this.router.navigate(['/products']),
-        error: () => alert('Failed to delete product')
-      });
-    }
+    this.isDeleting = true;
+    this.error = null;
+
+    this.productService.deleteProduct(this.product.id!).subscribe({
+      next: () => {
+        this.showDeleteModal = false;
+        this.router.navigate(['/products']);
+      },
+      error: (err) => {
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.error = err?.error?.errorMessage ?? 'Failed to delete product. Please try again.';
+      }
+    });
   }
 
   openFullImageView(): void {
