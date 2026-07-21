@@ -46,27 +46,38 @@
     
     <!-- Image Slider Section -->
     <div class="flex flex-col gap-4">
-      <div class="relative w-full h-96 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
+      <div class="relative w-full h-96 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 group flex items-center justify-center">
+        <!-- Clicking image triggers full view -->
         <img 
           [src]="currentImage" 
           [alt]="product.name" 
-          class="w-full h-full object-cover transition-all duration-300" />
+          (click)="openFullImageView()"
+          class="w-full h-full object-contain p-2 transition-all duration-300 cursor-zoom-in" />
+
+        <!-- Fullscreen Hover Badge -->
+        <button 
+          (click)="openFullImageView()"
+          class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 bg-slate-900/70 hover:bg-slate-900 text-white p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer z-10">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+          </svg>
+        </button>
 
         <!-- Carousel Arrows & Dots -->
         <ng-container *ngIf="product.imageUrls && product.imageUrls.length > 1">
           <button 
             (click)="prevImage()" 
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer">
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer z-10">
             &#8249;
           </button>
 
           <button 
             (click)="nextImage()" 
-            class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer">
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer z-10">
             &#8250;
           </button>
 
-          <div class="absolute bottom-3 right-3 bg-slate-900/60 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-medium">
+          <div class="absolute bottom-3 right-3 bg-slate-900/60 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-medium z-10">
             {{ selectedImageIndex + 1 }} / {{ product.imageUrls.length }}
           </div>
         </ng-container>
@@ -78,8 +89,8 @@
           *ngFor="let img of product.imageUrls; let i = index" 
           (click)="selectImage(i)"
           [class.ring-2]="i === selectedImageIndex"
-          class="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 opacity-70 hover:opacity-100 ring-indigo-600 transition-all cursor-pointer">
-          <img [src]="img" [alt]="product.name" class="w-full h-full object-cover" />
+          class="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex-shrink-0 opacity-70 hover:opacity-100 ring-indigo-600 transition-all cursor-pointer">
+          <img [src]="img" [alt]="product.name" class="w-full h-full object-contain p-1" />
         </button>
       </div>
     </div>
@@ -100,15 +111,54 @@
       <h3 class="text-sm font-semibold text-slate-900 mb-2">Description</h3>
       <p class="text-slate-600 text-sm leading-relaxed mb-8">{{ product.description }}</p>
 
-      <div class="mt-auto">
-        <button 
-          [disabled]="product.quantity === 0"
-          class="w-full py-3.5 px-6 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md transition-all duration-200 cursor-pointer">
-          Add to Cart
-        </button>
-      </div>
+     
     </div>
 
+  </div>
+
+  <!-- Fullscreen Image Viewer Modal -->
+  <div 
+    *ngIf="isFullViewOpen" 
+    (click)="closeFullImageView()"
+    class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn">
+    
+    <!-- Close Button -->
+    <button 
+      (click)="closeFullImageView()" 
+      class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-all cursor-pointer z-10">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Main Fullscreen Image Container -->
+    <div class="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center" (click)="$event.stopPropagation()">
+      <img 
+        [src]="currentImage" 
+        [alt]="product?.name || 'Product Image'" 
+        class="max-w-full max-h-[85vh] object-contain rounded-2xl select-none" />
+
+      <!-- Previous Image Arrow -->
+      <button 
+        *ngIf="product?.imageUrls && product!.imageUrls.length > 1"
+        (click)="prevImage(); $event.stopPropagation()" 
+        class="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-all cursor-pointer backdrop-blur-md">
+        &#8249;
+      </button>
+
+      <!-- Next Image Arrow -->
+      <button 
+        *ngIf="product?.imageUrls && product!.imageUrls.length > 1"
+        (click)="nextImage(); $event.stopPropagation()" 
+        class="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-all cursor-pointer backdrop-blur-md">
+        &#8250;
+      </button>
+
+      <!-- Counter Badge -->
+      <div *ngIf="product?.imageUrls && product!.imageUrls.length > 1" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full font-mono">
+        {{ selectedImageIndex + 1 }} / {{ product?.imageUrls?.length }}
+      </div>
+    </div>
   </div>
 
   <!-- Edit Modal -->

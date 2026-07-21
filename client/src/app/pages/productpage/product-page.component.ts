@@ -16,6 +16,7 @@ export class ProductPageComponent implements OnInit {
   product: Product | null = null;
   selectedImageIndex = 0;
   isLoading = true;
+  isFullViewOpen = false;
   error: string | null = null;
 
   // Edit Modal State
@@ -151,7 +152,15 @@ export class ProductPageComponent implements OnInit {
       });
     }
   }
+  openFullImageView(): void {
+    if (this.product?.imageUrls?.length) {
+      this.isFullViewOpen = true;
+    }
+  }
 
+  closeFullImageView(): void {
+    this.isFullViewOpen = false;
+  }
   goBack(): void {
     this.location.back();
   }

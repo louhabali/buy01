@@ -1,6 +1,7 @@
 package buy01.product_service.service;
 
 import buy01.product_service.client.MediaClient;
+import buy01.product_service.exceptions.ForbiddenException;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +40,10 @@ public class ProductService {
             String userRole) {
 
         validateUserData(userId);
-        
-        if (!"SELLER".equalsIgnoreCase(userRole)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: Only sellers can create products");
-        }
 
+        if (!"SELLER".equalsIgnoreCase(userRole)) {
+               throw new ForbiddenException("You do not have permission to perform this action.");
+        }
         validateProductDetails(name, price, quantity);
 
         List<String> imageUrls = new ArrayList<>();
@@ -104,7 +105,7 @@ public class ProductService {
 
     private void verifyOwnership(Product product, String userId, String userRole) {
         validateUserData(userId);
-        
+
         boolean isSeller = "SELLER".equalsIgnoreCase(userRole);
         boolean isOwner = product.getUserId() != null && product.getUserId().equals(userId);
 

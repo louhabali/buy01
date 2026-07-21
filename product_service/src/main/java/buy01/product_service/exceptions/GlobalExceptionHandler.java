@@ -47,7 +47,6 @@ public class GlobalExceptionHandler {
                 .body("Email or username already exists.");
     }
 
-  
     // Handle manual bad request exceptions 400
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> handleBadRequest(BadRequestException ex) {
@@ -55,8 +54,6 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(ex.getMessage());
     }
-
-
 
     // Handle resource not found exceptions 404
     @ExceptionHandler(NoResourceFoundException.class)
@@ -71,13 +68,25 @@ public class GlobalExceptionHandler {
                 .body("The requested route " + ex.getRequestURL() + " was not found.");
     }
 
+    // 403
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(ForbiddenException ex) {
+
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "Forbidden");
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
     // Handle method not allowed 405
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<String> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body("HTTP method " + ex.getMethod() + " is not allowed for this endpoint.");
     }
-     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<?> handleUnsupportedMediaType(
             HttpMediaTypeNotSupportedException ex) {
 
@@ -88,9 +97,9 @@ public class GlobalExceptionHandler {
                         "status", 415,
                         "error", "Unsupported Media Type",
                         "message", "This endpoint only accepts multipart/form-data.",
-                        "received", ex.getContentType()
-                ));
+                        "received", ex.getContentType()));
     }
+
     // Catch-all for unexpected exceptions 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAll(Exception ex) {
