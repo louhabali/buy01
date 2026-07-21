@@ -23,8 +23,7 @@ public class ProductService {
     private final MediaClient mediaClient;
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
-            "image/jpeg", "image/png", "image/webp", "image/gif"
-    );
+            "image/jpeg", "image/png", "image/webp", "image/gif");
     private static final long MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
     private static final int MAX_IMAGES_COUNT = 5;
 
@@ -57,7 +56,13 @@ public class ProductService {
 
         List<String> imageUrls = new ArrayList<>();
         if (hasValidImages(images)) {
+            validateImages(images);
             imageUrls = mediaClient.uploadImages(images);
+        } else {
+            // Default placeholder for products created without images
+            imageUrls.add("https://dummyimage.com/800x800/001830/ffffff.png&text=NO+IMAGE");
+            // Or your media server URL:
+            // "https://localhost:8089/media/images/default-product.png"
         }
 
         Product product = Product.builder()
@@ -137,7 +142,8 @@ public class ProductService {
         }
         String trimmedName = name.trim();
         if (trimmedName.length() < 3 || trimmedName.length() > 100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product name must be between 3 and 100 characters.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Product name must be between 3 and 100 characters.");
         }
 
         // Description Validation
@@ -146,7 +152,8 @@ public class ProductService {
         }
         String trimmedDesc = description.trim();
         if (trimmedDesc.length() < 10 || trimmedDesc.length() > 1000) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Description must be between 10 and 1000 characters.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Description must be between 10 and 1000 characters.");
         }
 
         // Price Validation
@@ -182,7 +189,8 @@ public class ProductService {
         }
 
         if (images.length > MAX_IMAGES_COUNT) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum " + MAX_IMAGES_COUNT + " images allowed per product.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Maximum " + MAX_IMAGES_COUNT + " images allowed per product.");
         }
 
         for (MultipartFile file : images) {
@@ -193,14 +201,15 @@ public class ProductService {
             // Check Content Type
             String contentType = file.getContentType();
             if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Invalid file type for '" + file.getOriginalFilename() + "'. Only JPG, PNG, WEBP, and GIF are allowed.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid file type for '" + file.getOriginalFilename()
+                                + "'. Only JPG, PNG, WEBP, and GIF are allowed.");
             }
 
             // Check Size
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "File '" + file.getOriginalFilename() + "' exceeds the 2MB size limit.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "File '" + file.getOriginalFilename() + "' exceeds the 2MB size limit.");
             }
         }
     }
