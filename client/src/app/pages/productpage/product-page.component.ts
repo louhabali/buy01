@@ -34,12 +34,12 @@ export class ProductPageComponent implements OnInit {
   selectedFiles: File[] = [];
   imagePreviews: string[] = [];
 
-  // Reactive form for inline editing
+  // Reactive form with strict length and value constraints
   form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]],
-    price: [0, [Validators.required, Validators.min(0.01)]],
-    quantity: [0, [Validators.required, Validators.min(0)]],
-    description: ['', [Validators.required, Validators.minLength(10)]]
+    name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+    price: [0, [Validators.required, Validators.min(0.01), Validators.max(9999999.99)]],
+    quantity: [0, [Validators.required, Validators.min(0), Validators.max(999999)]],
+    description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
   });
 
   ngOnInit(): void {
@@ -105,7 +105,18 @@ export class ProductPageComponent implements OnInit {
       (this.selectedImageIndex + 1) % this.imagePreviews.length;
   }
 
-  // Toggle Inline Edit
+  // Prevent entering more than 2 decimal places for price
+  onPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.value && input.value.includes('.')) {
+      const parts = input.value.split('.');
+      if (parts[1].length > 2) {
+        input.value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+        this.form.get('price')?.setValue(parseFloat(input.value), { emitEvent: false });
+      }
+    }
+  }
+
   editProduct(): void {
     this.editing = true;
   }
@@ -125,7 +136,6 @@ export class ProductPageComponent implements OnInit {
     this.selectedFiles = Array.from(input.files);
     this.imagePreviews = [];
 
-    // Local previews for selected images
     this.selectedFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -144,8 +154,8 @@ export class ProductPageComponent implements OnInit {
 
     const values = this.form.getRawValue();
     const formData = new FormData();
-    formData.append('name', values.name);
-    formData.append('description', values.description);
+    formData.append('name', values.name.trim());
+    formData.append('description', values.description.trim());
     formData.append('price', values.price.toString());
     formData.append('quantity', values.quantity.toString());
 
@@ -206,6 +216,7 @@ export class ProductPageComponent implements OnInit {
   goBack(): void {
     this.location.back();
   }
+
   downloadCurrentImage(): void {
     const imageUrl = this.currentImage;
     if (!imageUrl || imageUrl.includes('assets/placeholder')) return;
@@ -215,7 +226,6 @@ export class ProductPageComponent implements OnInit {
 
     const downloadUrl = `https://localhost:8089/media/images/${fileName}/download`;
 
-    // Trigger standard browser download
     const anchor = document.createElement('a');
     anchor.href = downloadUrl;
     anchor.download = fileName;
