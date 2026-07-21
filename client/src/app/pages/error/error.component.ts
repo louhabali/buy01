@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-
+import { AuthService } from '../../services/auth.service';
 interface ErrorDetails {
   title: string;
   subtitle: string;
@@ -12,7 +12,7 @@ interface ErrorDetails {
 @Component({
   selector: 'app-error',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   template: `
     <div class="min-h-screen bg-[#0a1120] flex items-center justify-center p-6 antialiased font-sans">
       <div class="w-full max-w-xl text-center">
@@ -45,22 +45,19 @@ interface ErrorDetails {
         <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button (click)="goBack()" 
             class="w-full sm:w-auto border border-white/20 hover:border-white text-white font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded-lg transition-all bg-white/5">
-            ← Return Back
+            ← Return
           </button>
-          
-          <a routerLink="/" 
-            class="w-full sm:w-auto bg-white hover:bg-gray-100 text-[#0a1120] font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded-lg transition-all text-center shadow-md">
-            Go To Dashboard
-          </a>
+      
         </div>
 
-      </div>
-    </div>
-  `
-})
-export class ErrorComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+        </div>
+        </div>
+        `
+      })
+      export class ErrorComponent implements OnInit {
+        private route = inject(ActivatedRoute);
+        private routery = inject(Router);
+        private authService = inject(AuthService);
 
   statusCode = '404';
   config!: ErrorDetails;
@@ -99,6 +96,12 @@ export class ErrorComponent implements OnInit {
   }
 
   goBack(): void {
-    window.history.back();
+     
+    
+      if (this.authService.isLoggedIn()) {
+        this.routery.navigate(['/']);
+      }else {
+        this.routery.navigate(['/login']);
+      }
   }
 }

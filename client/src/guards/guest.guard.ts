@@ -11,6 +11,6 @@ export const guestGuard: CanActivateFn = (route, state) => {
   }
 
   console.log('User already logged in. Redirecting away from Auth Pages...');
-  router.navigate(['/profile']);
+  router.navigate(['/']);
   return false;
 };
