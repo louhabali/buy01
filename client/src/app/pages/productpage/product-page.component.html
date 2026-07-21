@@ -146,12 +146,12 @@
             <!-- Price Field -->
             <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
               <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
-                Price ($ USD)
+                Price (DH)
               </label>
 
               <!-- View Mode -->
               <div *ngIf="!editing" class="text-lg font-mono font-bold text-[#001830]">
-                ${{ product.price | number:'1.2-2' }}
+                {{ product.price | number:'1.2-2' }} DH
               </div>
 
               <!-- Edit Mode -->
