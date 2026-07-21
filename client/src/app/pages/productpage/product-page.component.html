@@ -1,117 +1,260 @@
-<div class="max-w-5xl mx-auto px-4 py-8 font-sans">
-  
-  <!-- Top Navigation & Actions Bar -->
-  <div class="flex items-center justify-between mb-6">
+<div class="min-h-screen bg-[#0a1120] flex flex-col items-center justify-center p-6 antialiased font-sans">
+
+  <!-- Navigation Bar -->
+  <div class="w-full max-w-5xl flex items-center justify-between mb-4">
     <button 
+      type="button"
       (click)="goBack()" 
-      class="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+      class="flex items-center gap-2 text-xs font-mono tracking-widest uppercase text-white/60 hover:text-white transition-colors cursor-pointer">
       &larr; Back to Products
     </button>
-
-    <!-- Seller Actions (Only visible to product owner) -->
-    <div *ngIf="isOwner" class="flex items-center gap-3">
-      <button 
-        (click)="openEditModal()" 
-        class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-        </svg>
-        Edit Product
-      </button>
-
-      <button 
-        (click)="onDelete()" 
-        class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-all cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-        </svg>
-        Delete
-      </button>
-    </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-20 gap-3">
-    <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-sm text-slate-500 font-medium">Loading product details...</p>
+  <!-- Loading State Blanket -->
+  <div *ngIf="isLoading" class="text-center animate-pulse py-20">
+    <h1 class="text-white text-2xl font-semibold tracking-wider">
+      Loading Product Details...
+    </h1>
   </div>
 
-  <!-- Error State -->
-  <div *ngIf="error" class="bg-red-50 text-red-600 p-4 rounded-xl text-center font-medium">
+  <!-- Top Global Error Banner -->
+  <div *ngIf="error" class="w-full max-w-5xl mb-4 bg-red-950 border border-red-800 text-red-400 p-4 rounded-xl font-mono text-xs uppercase shadow-sm">
     {{ error }}
   </div>
 
-  <!-- Product Details Card -->
-  <div *ngIf="product && !isLoading" class="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-    
-    <!-- Image Slider Section -->
-    <div class="flex flex-col gap-4">
-      <div class="relative w-full h-96 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 group flex items-center justify-center">
-        <!-- Clicking image triggers full view -->
-        <img 
-          [src]="currentImage" 
-          [alt]="product.name" 
-          (click)="openFullImageView()"
-          class="w-full h-full object-contain p-2 transition-all duration-300 cursor-zoom-in" />
+  <!-- Main Card Container -->
+  <div *ngIf="product && !isLoading" [formGroup]="form"
+    class="w-full max-w-5xl bg-white border border-[#001830]/10 rounded-2xl shadow-[0_20px_50px_rgba(0,24,48,0.15)] overflow-hidden">
 
-        <!-- Fullscreen Hover Badge -->
-        <button 
-          (click)="openFullImageView()"
-          class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 bg-slate-900/70 hover:bg-slate-900 text-white p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer z-10">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-          </svg>
-        </button>
+    <div class="grid md:grid-cols-3">
 
-        <!-- Carousel Arrows & Dots -->
-        <ng-container *ngIf="product.imageUrls && product.imageUrls.length > 1">
-          <button 
-            (click)="prevImage()" 
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer z-10">
-            &#8249;
-          </button>
+      <!-- ================= LEFT COLUMN (PRODUCT IMAGES & GALLERY) ================= -->
+      <div class="bg-[#001830] p-8 flex flex-col items-center justify-between text-center min-h-[500px]">
+        
+        <div class="flex flex-col items-center w-full">
+          
+          <!-- Image Frame -->
+          <div class="relative group w-full aspect-square max-w-[280px]">
+            <div class="w-full h-full rounded-2xl border-2 border-white/20 p-2 bg-white/5 transition-all duration-300 group-hover:border-white flex items-center justify-center overflow-hidden">
+              <img 
+                [src]="currentImage" 
+                [alt]="product.name" 
+                (click)="!editing && openFullImageView()"
+                class="w-full h-full object-contain rounded-xl"
+                [class.cursor-zoom-in]="!editing" />
+            </div>
 
-          <button 
-            (click)="nextImage()" 
-            class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-md shadow-md flex items-center justify-center text-slate-800 hover:bg-white text-xl transition-all cursor-pointer z-10">
-            &#8250;
-          </button>
-
-          <div class="absolute bottom-3 right-3 bg-slate-900/60 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-medium z-10">
-            {{ selectedImageIndex + 1 }} / {{ product.imageUrls.length }}
+            <!-- Upload Overlay Filter in Edit Mode -->
+            <ng-container *ngIf="editing">
+              <label 
+                for="file-upload"
+                class="absolute inset-0 rounded-2xl bg-[#001830]/80 text-white flex flex-col items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100 backdrop-blur-xs">
+                <span class="text-2xl">📷</span>
+                <span class="text-[10px] uppercase font-bold tracking-wider mt-1">Replace Images</span>
+              </label>
+              <input 
+                id="file-upload" 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                class="hidden" 
+                (change)="onImagesSelected($event)" />
+            </ng-container>
           </div>
-        </ng-container>
+
+          <!-- Thumbnail Gallery Switcher -->
+          <div *ngIf="imagePreviews.length > 1" class="flex gap-2 mt-4 overflow-x-auto max-w-[280px] pb-2">
+            <button 
+              type="button"
+              *ngFor="let img of imagePreviews; let i = index" 
+              (click)="selectImage(i)"
+              [ngClass]="{
+  'border-white': i === selectedImageIndex,
+  'border-white/20': i !== selectedImageIndex
+}"
+              class="w-12 h-12 rounded-lg border-2 bg-white/10 overflow-hidden flex-shrink-0 cursor-pointer transition-all">
+              <img [src]="img" alt="Product thumbnail" class="w-full h-full object-contain p-0.5" />
+            </button>
+          </div>
+
+          <!-- Stock Status Badge -->
+          <div class="mt-6">
+            <span 
+              class="px-4 py-1.5 rounded-sm border text-xs font-mono tracking-widest uppercase bg-white/5"
+              [ngClass]="product.quantity > 0 ? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'">
+              {{ product.quantity > 0 ? ('In Stock: ' + product.quantity) : 'Out of Stock' }}
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Hint Text Pinned at Bottom -->
+        <div class="w-full mt-6">
+          <p *ngIf="editing" class="text-xs text-white/50 max-w-[220px] mx-auto leading-relaxed">
+            Hover image to upload replacement photos for this item.
+          </p>
+          <p *ngIf="!editing" class="text-xs text-white/30 tracking-wider uppercase font-mono">
+            Catalog ID: {{ product.id?.slice(-8) }}
+          </p>
+        </div>
+
       </div>
 
-      <!-- Thumbnail Selector -->
-      <div *ngIf="product.imageUrls && product.imageUrls.length > 1" class="flex gap-2.5 overflow-x-auto pb-2">
-        <button 
-          *ngFor="let img of product.imageUrls; let i = index" 
-          (click)="selectImage(i)"
-          [class.ring-2]="i === selectedImageIndex"
-          class="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex-shrink-0 opacity-70 hover:opacity-100 ring-indigo-600 transition-all cursor-pointer">
-          <img [src]="img" [alt]="product.name" class="w-full h-full object-contain p-1" />
-        </button>
+      <!-- ================= RIGHT COLUMN (PRODUCT DETAILS INLINE FORM) ================= -->
+      <div class="md:col-span-2 p-10 flex flex-col justify-between bg-white">
+        
+        <div>
+          <!-- Header Bar -->
+          <div class="flex justify-between items-center pb-6 mb-8 border-b-2 border-[#001830]">
+            <h2 class="text-2xl font-black text-[#001830] tracking-tight uppercase">
+              Product Specification
+            </h2>
+            <span *ngIf="editing" 
+              class="bg-[#001830] text-white text-xs font-mono uppercase tracking-widest px-3 py-1 font-bold animate-pulse">
+              [ Editing Product ]
+            </span>
+          </div>
+
+          <!-- Information Fields Grid -->
+          <div class="grid sm:grid-cols-2 gap-px bg-[#001830]/10 border border-[#001830]/10 rounded-xl overflow-hidden shadow-inner">
+            
+            <!-- Product Name -->
+            <div class="sm:col-span-2 bg-white p-5 transition-colors hover:bg-gray-50/50">
+              <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                Product Title
+              </label>
+
+              <!-- View Mode -->
+              <div *ngIf="!editing" class="text-xl font-bold text-[#001830] tracking-tight">
+                {{ product.name }}
+              </div>
+
+              <!-- Edit Mode -->
+              <div *ngIf="editing">
+                <input formControlName="name" type="text"
+                  class="w-full text-lg font-bold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight" />
+                
+                <!-- Reactive Validation -->
+                <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span *ngIf="form.get('name')?.errors?.['required']">Title is required</span>
+                  <span *ngIf="form.get('name')?.errors?.['minlength']">Minimum 3 characters required</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Field -->
+            <div class="bg-white p-5 transition-colors hover:bg-gray-50/50">
+              <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                Price ($ USD)
+              </label>
+
+              <!-- View Mode -->
+              <div *ngIf="!editing" class="text-lg font-mono font-bold text-[#001830]">
+                ${{ product.price | number:'1.2-2' }}
+              </div>
+
+              <!-- Edit Mode -->
+              <div *ngIf="editing">
+                <input formControlName="price" type="number" step="0.01"
+                  class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight" />
+                
+                <div *ngIf="form.get('price')?.invalid && form.get('price')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span>Valid price &gt; 0 required</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity Field -->
+            <div class="bg-[#fafafa] sm:bg-white p-5 transition-colors hover:bg-gray-50/50">
+              <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                Stock Inventory
+              </label>
+
+              <!-- View Mode -->
+              <div *ngIf="!editing" class="text-base font-semibold text-[#001830]">
+                {{ product.quantity }} Units
+              </div>
+
+              <!-- Edit Mode -->
+              <div *ngIf="editing">
+                <input formControlName="quantity" type="number"
+                  class="w-full text-base font-semibold text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight" />
+                
+                <div *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span>Quantity cannot be negative</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description Field -->
+            <div class="sm:col-span-2 bg-white p-5 transition-colors hover:bg-gray-50/50">
+              <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">
+                Detailed Description
+              </label>
+
+              <!-- View Mode -->
+              <div *ngIf="!editing" class="text-sm text-gray-600 leading-relaxed">
+                {{ product.description }}
+              </div>
+
+              <!-- Edit Mode -->
+              <div *ngIf="editing">
+                <textarea formControlName="description" rows="3"
+                  class="w-full text-sm text-[#001830] bg-transparent border-b border-[#001830] py-1 focus:outline-none focus:border-b-2 tracking-tight leading-relaxed"></textarea>
+                
+                <div *ngIf="form.get('description')?.invalid && form.get('description')?.touched" class="text-red-600 mt-1.5 font-mono text-[10px] uppercase tracking-wide">
+                  <span *ngIf="form.get('description')?.errors?.['required']">Description is required</span>
+                  <span *ngIf="form.get('description')?.errors?.['minlength']">Minimum 10 characters required</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================= ACTION BAR ================= -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-12 pt-6 border-t border-[#001830]/10">
+          
+          <!-- View Mode (Only rendered for Product Owner) -->
+          <ng-container *ngIf="isOwner && !editing">
+            <button 
+              type="button"
+              (click)="editProduct()"
+              class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-sm cursor-pointer">
+              Edit Details
+            </button>
+
+            <button 
+              type="button"
+              (click)="onDelete()"
+              class="border-2 border-dashed border-red-200 text-red-700 hover:border-red-600 hover:bg-red-50 font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition cursor-pointer">
+              Delete Item
+            </button>
+          </ng-container>
+
+          <!-- Edit Mode Controls -->
+          <ng-container *ngIf="editing">
+            <button 
+              type="button"
+              (click)="saveProduct()" 
+              [disabled]="isSaving || form.invalid"
+              class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+              {{ isSaving ? 'Saving...' : 'Save Product' }}
+            </button>
+
+            <button 
+              type="button"
+              (click)="cancelEdit()" 
+              [disabled]="isSaving"
+              class="border border-gray-300 text-gray-500 hover:border-[#001830] hover:text-[#001830] font-bold text-xs uppercase tracking-widest py-3.5 px-4 rounded-lg transition disabled:opacity-40 cursor-pointer">
+              Discard
+            </button>
+          </ng-container>
+
+        </div>
+
       </div>
-    </div>
 
-    <!-- Product Details Information -->
-    <div class="flex flex-col">
-      <span 
-        class="self-start text-xs font-semibold px-3 py-1 rounded-full mb-3"
-        [ngClass]="product.quantity > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">
-        {{ product.quantity > 0 ? ('In Stock (' + product.quantity + ' available)') : 'Out of Stock' }}
-      </span>
-
-      <h1 class="text-3xl font-bold text-slate-900 mb-2">{{ product.name }}</h1>
-      <p class="text-2xl font-extrabold text-indigo-600 mb-6">${{ product.price | number:'1.2-2' }}</p>
-
-      <div class="h-px bg-slate-100 w-full mb-6"></div>
-
-      <h3 class="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-      <p class="text-slate-600 text-sm leading-relaxed mb-8">{{ product.description }}</p>
-
-     
     </div>
 
   </div>
@@ -120,93 +263,36 @@
   <div 
     *ngIf="isFullViewOpen" 
     (click)="closeFullImageView()"
-    class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn">
+    class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8">
     
-    <!-- Close Button -->
     <button 
+      type="button"
       (click)="closeFullImageView()" 
-      class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-all cursor-pointer z-10">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
+      class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 p-3 rounded-full cursor-pointer z-10">
+      ✕
     </button>
 
-    <!-- Main Fullscreen Image Container -->
     <div class="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center" (click)="$event.stopPropagation()">
       <img 
         [src]="currentImage" 
         [alt]="product?.name || 'Product Image'" 
         class="max-w-full max-h-[85vh] object-contain rounded-2xl select-none" />
 
-      <!-- Previous Image Arrow -->
       <button 
-        *ngIf="product?.imageUrls && product!.imageUrls.length > 1"
+        type="button"
+        *ngIf="imagePreviews.length > 1"
         (click)="prevImage(); $event.stopPropagation()" 
-        class="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-all cursor-pointer backdrop-blur-md">
+        class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl cursor-pointer">
         &#8249;
       </button>
 
-      <!-- Next Image Arrow -->
       <button 
-        *ngIf="product?.imageUrls && product!.imageUrls.length > 1"
+        type="button"
+        *ngIf="imagePreviews.length > 1"
         (click)="nextImage(); $event.stopPropagation()" 
-        class="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl transition-all cursor-pointer backdrop-blur-md">
+        class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-2xl cursor-pointer">
         &#8250;
       </button>
-
-      <!-- Counter Badge -->
-      <div *ngIf="product?.imageUrls && product!.imageUrls.length > 1" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white text-xs px-4 py-1.5 rounded-full font-mono">
-        {{ selectedImageIndex + 1 }} / {{ product?.imageUrls?.length }}
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Modal -->
-  <div *ngIf="isEditModalOpen" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
-      
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-slate-900">Edit Product</h2>
-        <button (click)="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold cursor-pointer">&times;</button>
-      </div>
-
-      <form (ngSubmit)="onSaveEdit()" class="flex flex-col gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Product Name</label>
-          <input type="text" [(ngModel)]="editForm.name" name="name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Price ($)</label>
-            <input type="number" step="0.01" [(ngModel)]="editForm.price" name="price" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Quantity</label>
-            <input type="number" [(ngModel)]="editForm.quantity" name="quantity" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
-          <textarea [(ngModel)]="editForm.description" name="description" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Upload New Images (Optional)</label>
-          <input type="file" (change)="onFileChange($event)" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer" />
-        </div>
-
-        <div class="flex justify-end gap-3 mt-4">
-          <button type="button" (click)="closeEditModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-            Cancel
-          </button>
-          <button type="submit" [disabled]="isSaving" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 transition-colors cursor-pointer">
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </div>
-      </form>
-
     </div>
   </div>
 

@@ -27,6 +27,14 @@ export class ProductsComponent implements OnInit {
     this.loadProducts();
   }
 
+  // Helper check for seller/admin roles
+  get canAddProduct(): boolean {
+    const role = this.authService.getRole();
+    console.log(this.authService.getProfile, role );
+    // Adjust role values ('SELLER', 'ROLE_SELLER', etc.) to match your backend string format
+    return role === 'SELLER';
+  }
+
   loadProducts(): void {
     this.isLoading = true;
     this.productService.getAllProducts().subscribe({

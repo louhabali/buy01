@@ -12,7 +12,9 @@
         </p>
       </div>
 
-      <a routerLink="/products/add" 
+      <!-- Button shown ONLY to Sellers/Admins -->
+      <a *ngIf="canAddProduct"
+         routerLink="/products/add" 
          class="bg-white hover:bg-gray-100 text-[#001830] font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-lg transition shadow-md flex items-center gap-2">
         <span>+</span> Add New Product
       </a>

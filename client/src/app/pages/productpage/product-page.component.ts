@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,34 +9,36 @@ import { Product } from '../../models/product';
 @Component({
   selector: 'app-product-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './product-page.component.html'
 })
 export class ProductPageComponent implements OnInit {
+  private fb = inject(NonNullableFormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private productService = inject(ProductService);
+  private authService = inject(AuthService);
+  private location = inject(Location);
+
   product: Product | null = null;
   selectedImageIndex = 0;
   isLoading = true;
+  isSaving = false;
+  editing = false;
   isFullViewOpen = false;
   error: string | null = null;
 
-  // Edit Modal State
-  isEditModalOpen = false;
-  isSaving = false;
+  // New files selected during edit mode
   selectedFiles: File[] = [];
-  editForm = {
-    name: '',
-    description: '',
-    price: 0,
-    quantity: 0
-  };
+  imagePreviews: string[] = [];
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private productService: ProductService,
-    private authService: AuthService,
-    private location: Location
-  ) {}
+  // Reactive form for inline editing
+  form = this.fb.group({
+    name: ['', [Validators.required, Validators.minLength(3)]],
+    price: [0, [Validators.required, Validators.min(0.01)]],
+    quantity: [0, [Validators.required, Validators.min(0)]],
+    description: ['', [Validators.required, Validators.minLength(10)]]
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -58,6 +60,7 @@ export class ProductPageComponent implements OnInit {
     this.productService.getProduct(id).subscribe({
       next: (data) => {
         this.product = data;
+        this.resetFormValues(data);
         this.isLoading = false;
       },
       error: () => {
@@ -67,9 +70,19 @@ export class ProductPageComponent implements OnInit {
     });
   }
 
+  private resetFormValues(p: Product): void {
+    this.form.patchValue({
+      name: p.name,
+      price: p.price,
+      quantity: p.quantity,
+      description: p.description
+    });
+    this.imagePreviews = p.imageUrls ? [...p.imageUrls] : [];
+  }
+
   get currentImage(): string {
-    if (this.product?.imageUrls && this.product.imageUrls.length > 0) {
-      return this.product.imageUrls[this.selectedImageIndex] || 'assets/placeholder-product.png';
+    if (this.imagePreviews.length > 0) {
+      return this.imagePreviews[this.selectedImageIndex] || 'assets/placeholder-product.png';
     }
     return 'assets/placeholder-product.png';
   }
@@ -79,49 +92,60 @@ export class ProductPageComponent implements OnInit {
   }
 
   prevImage(): void {
-    if (!this.product?.imageUrls?.length) return;
+    if (!this.imagePreviews.length) return;
     this.selectedImageIndex = 
-      (this.selectedImageIndex - 1 + this.product.imageUrls.length) % this.product.imageUrls.length;
+      (this.selectedImageIndex - 1 + this.imagePreviews.length) % this.imagePreviews.length;
   }
 
   nextImage(): void {
-    if (!this.product?.imageUrls?.length) return;
+    if (!this.imagePreviews.length) return;
     this.selectedImageIndex = 
-      (this.selectedImageIndex + 1) % this.product.imageUrls.length;
+      (this.selectedImageIndex + 1) % this.imagePreviews.length;
   }
 
-  openEditModal(): void {
-    if (!this.product) return;
-    this.editForm = {
-      name: this.product.name,
-      description: this.product.description,
-      price: this.product.price,
-      quantity: this.product.quantity
-    };
+  // Toggle Inline Edit
+  editProduct(): void {
+    this.editing = true;
+  }
+
+  cancelEdit(): void {
+    this.editing = false;
     this.selectedFiles = [];
-    this.isEditModalOpen = true;
-  }
-
-  closeEditModal(): void {
-    this.isEditModalOpen = false;
-  }
-
-  onFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-      this.selectedFiles = Array.from(input.files);
+    if (this.product) {
+      this.resetFormValues(this.product);
     }
   }
 
-  onSaveEdit(): void {
-    if (!this.product) return;
-    this.isSaving = true;
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
+    this.selectedFiles = Array.from(input.files);
+    this.imagePreviews = [];
+
+    // Local previews for selected images
+    this.selectedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreviews.push(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    this.selectedImageIndex = 0;
+  }
+
+  saveProduct(): void {
+    if (this.form.invalid || !this.product) return;
+    this.isSaving = true;
+    this.error = null;
+
+    const values = this.form.getRawValue();
     const formData = new FormData();
-    formData.append('name', this.editForm.name);
-    formData.append('description', this.editForm.description);
-    formData.append('price', this.editForm.price.toString());
-    formData.append('quantity', this.editForm.quantity.toString());
+    formData.append('name', values.name);
+    formData.append('description', values.description);
+    formData.append('price', values.price.toString());
+    formData.append('quantity', values.quantity.toString());
 
     this.selectedFiles.forEach((file) => {
       formData.append('images', file);
@@ -130,12 +154,14 @@ export class ProductPageComponent implements OnInit {
     this.productService.updateProduct(this.product.id!, formData).subscribe({
       next: (updatedProduct) => {
         this.product = updatedProduct;
-        this.selectedImageIndex = 0;
+        this.resetFormValues(updatedProduct);
+        this.editing = false;
         this.isSaving = false;
-        this.closeEditModal();
+        this.selectedFiles = [];
+        this.selectedImageIndex = 0;
       },
-      error: () => {
-        alert('Failed to update product');
+      error: (err) => {
+        this.error = err?.error?.errorMessage ?? 'Failed to update product details';
         this.isSaving = false;
       }
     });
@@ -145,22 +171,20 @@ export class ProductPageComponent implements OnInit {
     if (!this.product) return;
     if (confirm(`Are you sure you want to delete "${this.product.name}"?`)) {
       this.productService.deleteProduct(this.product.id!).subscribe({
-        next: () => {
-          this.router.navigate(['/products']);
-        },
+        next: () => this.router.navigate(['/products']),
         error: () => alert('Failed to delete product')
       });
     }
   }
+
   openFullImageView(): void {
-    if (this.product?.imageUrls?.length) {
-      this.isFullViewOpen = true;
-    }
+    if (this.imagePreviews.length) this.isFullViewOpen = true;
   }
 
   closeFullImageView(): void {
     this.isFullViewOpen = false;
   }
+
   goBack(): void {
     this.location.back();
   }

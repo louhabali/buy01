@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../environments/environment';
-
+import { BehaviorSubject } from 'rxjs';
 export interface LoginRequest {
   email: string;
   password: string;
@@ -37,7 +37,8 @@ export interface JwtPayload {
 export class AuthService {
 
   private http = inject(HttpClient);
-
+  private loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
+  loggedIn$ = this.loggedInSubject.asObservable();
   private readonly TOKEN_KEY = 'token';
 
   login(data: LoginRequest): Observable<any> {
@@ -94,6 +95,7 @@ updateProfile(profile: {
   saveToken(token: string): void {
 
     localStorage.setItem(this.TOKEN_KEY, token);
+     this.loggedInSubject.next(true);
 
   }
 
@@ -106,6 +108,7 @@ updateProfile(profile: {
   removeToken(): void {
 
     localStorage.removeItem(this.TOKEN_KEY);
+     this.loggedInSubject.next(false);
 
   }
 
@@ -160,9 +163,11 @@ updateProfile(profile: {
   }
 
   getRole(): string | null {
-
+    console.log('Decoded Token:', this.getDecodedToken());
     return this.getDecodedToken()?.role ?? null;
 
   }
-
+  private hasToken(): boolean {
+  return !!localStorage.getItem('token');
+}
 }

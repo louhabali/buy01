@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-[#0a1120] text-[#001830] antialiased font-sans flex flex-col justify-between">
   
   <!-- Global Application Header -->
-  <app-navbar></app-navbar>
+  <app-navbar *ngIf="authService.loggedIn$ | async"></app-navbar>
 
   <!-- Dynamic Page Content Outlet -->
   <main class="flex-1">
