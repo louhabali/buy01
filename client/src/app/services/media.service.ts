@@ -29,5 +29,17 @@ export class MediaService {
     );
 
   }
+  deleteImage(fileName: string): Observable<void> {
+
+    return this.http.delete<void>(
+      `${environment.mediaUrl}/images/${fileName}`
+    );
+
+  }
+  getImageUrl(fileName: string): string {
+
+    return `${environment.mediaUrl}/images/${fileName}`;
+
+  }
 
 }

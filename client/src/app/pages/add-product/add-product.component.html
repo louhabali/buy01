@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-[#0a1120] flex items-center justify-center p-6 antialiased font-sans">
+  
+  <div class="w-full max-w-3xl bg-white border border-[#001830]/10 rounded-2xl shadow-[0_20px_50px_rgba(0,24,48,0.15)] overflow-hidden">
+    
+    <!-- Top Bar -->
+    <div class="bg-[#001830] p-8 flex justify-between items-center text-white border-b border-[#001830]">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Create Listing</h1>
+        <p class="text-xs text-white/50 uppercase font-mono tracking-wider mt-1">Publish item to storefront index</p>
+      </div>
+      <a routerLink="/products" class="text-xs text-white/70 hover:text-white uppercase font-mono tracking-widest border border-white/20 px-3 py-1.5 rounded">
+        Cancel
+      </a>
+    </div>
+
+    <!-- Form Content -->
+    <div class="p-8 sm:p-10">
+      
+      <!-- Error Message Banner -->
+      <div *ngIf="errorMessage" class="mb-6 bg-red-950 border border-red-800 text-red-400 text-xs font-mono uppercase px-4 py-3 rounded-lg shadow-sm whitespace-pre-line">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <div class="space-y-6">
+        
+        <!-- Name Field -->
+        <div>
+          <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+            Product Title
+          </label>
+          <input [(ngModel)]="name" type="text" placeholder="e.g. Vintage Leather Jacket"
+                 class="w-full text-base font-semibold text-[#001830] bg-gray-50 border border-gray-200 rounded-lg p-3.5 focus:outline-none focus:border-[#001830] transition">
+        </div>
+
+        <!-- Description Field -->
+        <div>
+          <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+            Description
+          </label>
+          <textarea [(ngModel)]="description" rows="3" placeholder="Provide full detail specifications..."
+                    class="w-full text-sm font-medium text-[#001830] bg-gray-50 border border-gray-200 rounded-lg p-3.5 focus:outline-none focus:border-[#001830] transition resize-none"></textarea>
+        </div>
+
+        <!-- Price & Quantity Inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+              Price (DH)
+            </label>
+            <input [(ngModel)]="price" type="number" min="0"
+                   class="w-full text-base font-semibold text-[#001830] bg-gray-50 border border-gray-200 rounded-lg p-3.5 focus:outline-none focus:border-[#001830] transition">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+              Stock Quantity
+            </label>
+            <input [(ngModel)]="quantity" type="number" min="0"
+                   class="w-full text-base font-semibold text-[#001830] bg-gray-50 border border-gray-200 rounded-lg p-3.5 focus:outline-none focus:border-[#001830] transition">
+          </div>
+        </div>
+
+        <!-- Image Upload Box -->
+        <div>
+          <label class="block text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+            Product Images
+          </label>
+          
+          <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[#001830] transition cursor-pointer bg-gray-50/50 group">
+            <input type="file" multiple accept="image/*" (change)="onFileSelected($event)"
+                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            <div class="flex flex-col items-center">
+              <span class="text-3xl mb-2">📸</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-[#001830]">Click to attach images</span>
+              <span class="text-[10px] text-gray-400 font-mono mt-1">PNG, JPG up to 2MB each</span>
+            </div>
+          </div>
+
+          <!-- Previews Row -->
+          <div *ngIf="previews.length > 0" class="flex flex-wrap gap-3 mt-4">
+            <div *ngFor="let preview of previews" class="w-16 h-16 rounded-lg overflow-hidden border border-[#001830]/20 shadow-sm">
+              <img [src]="preview" class="w-full h-full object-cover">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="mt-10 pt-6 border-t border-[#001830]/10 flex justify-end gap-3">
+        <a routerLink="/products" 
+           class="border border-gray-300 text-gray-600 font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded-lg hover:border-[#001830] transition">
+          Cancel
+        </a>
+        <button (click)="saveProduct()" [disabled]="loading"
+                class="bg-[#001830] hover:bg-[#001830]/90 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-8 rounded-lg transition shadow-md disabled:opacity-40">
+          {{ loading ? 'Publishing...' : 'Save Product' }}
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

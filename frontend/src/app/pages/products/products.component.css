@@ -1,0 +1,37 @@
+.products-page{
+
+    background:#08111f;
+
+    min-height:100vh;
+
+    padding:40px;
+
+}
+
+.page-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:40px;
+
+}
+
+.page-header h2{
+
+    color:white;
+
+    font-size:36px;
+
+    font-weight:bold;
+
+}
+
+.page-header p{
+
+    color:#9ba8b5;
+
+}

@@ -22,33 +22,31 @@ public class ProductService {
     }
 
     public Product getProduct(String id) {
-
         return repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     public Product createProduct(
             String name,
-            Float price,
+            String description,
+            Double price,
+            Integer quantity,
             MultipartFile[] images,
             String userId) {
 
-        // Authentication auth =
-        //         SecurityContextHolder.getContext().getAuthentication();
-        //         String sellerId = auth.getName();
-        //         System.out.println("Authenticated user: " + sellerId);
         List<String> imageUrls = new ArrayList<>();
 
-        if(images != null && images.length > 0){
-
+        if (images != null && images.length > 0) {
             imageUrls = mediaClient.uploadImages(images);
-
         }
 
         Product product = Product.builder()
                 .name(name)
+                .description(description)
                 .price(price)
-                .sellerId(userId)
+                .quantity(quantity)
+                // .sellerId(userId)
+                .userId(userId)
                 .imageUrls(imageUrls)
                 .build();
 
@@ -58,53 +56,48 @@ public class ProductService {
     public Product updateProduct(
             String id,
             String name,
-            Float price,
+            String description,
+            Double price,
+            Integer quantity,
             MultipartFile[] images,
-            String userId
-        ){
-
-      
-
-        String sellerId = userId;
+            String userId) {
 
         Product product = repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if(!product.getSellerId().equals(sellerId)){
+        if (!product.getUserId().equals(userId)) {
             throw new SecurityException("You are not the owner");
         }
 
         product.setName(name);
+        product.setDescription(description);
         product.setPrice(price);
+        product.setQuantity(quantity);
 
-        if(images != null && images.length > 0){
+        if (images != null && images.length > 0) {
 
-            List<String> imageUrls =
-                    mediaClient.uploadImages(images);
+            List<String> imageUrls = mediaClient.uploadImages(images);
 
             product.setImageUrls(imageUrls);
         }
 
         return repository.save(product);
-
     }
 
-    public void deleteProduct(String id , String userId) {
-        Product product = repository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Product not found"));
+    public void deleteProduct(String id, String userId) {
 
-        if(!product.getSellerId().equals(userId)){
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (!product.getUserId().equals(userId)) {
             throw new SecurityException("You are not the owner");
         }
 
         repository.delete(product);
-
     }
 
-    // kafka 
-    public void deleteProductsBySellerId(String sellerId) {
-
-     repository.deleteBySellerId(sellerId);
-      
-}
+    // Kafka
+    public void deleteProductsByUserId(String userId) {
+        repository.deleteByUserId(userId);
+    }
 }

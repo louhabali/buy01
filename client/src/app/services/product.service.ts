@@ -1,60 +1,60 @@
+
+
+
 import { Injectable } from '@angular/core';
-
-import { HttpClient } from '@angular/common/http';
-
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
+import { AuthService } from './auth.service';
 import { Product } from '../models/product';
-
 import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
+ 
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
-  getProducts(): Observable<Product[]> {
-
-    return this.http.get<Product[]>(
-      environment.productUrl
-    );
-
+  private getHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      'X-User-Id': this.authService.getUserId() || '',
+      'X-Role': this.authService.getRole() || 'CLIENT' 
+    });
   }
 
-  getProduct(id: string): Observable<Product> {
-
-    return this.http.get<Product>(
-      `${environment.productUrl}/${id}`
-    );
-
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(environment.productUrl);
+  }
+    getProduct(id: string): Observable<Product> {
+     return this.http.get<Product>(
+       `${environment.productUrl}/${id}`
+     );
+   }
+   getProductById(id: string): Observable<Product> {
+    return this.getProduct(id);
   }
 
-  addProduct(form: FormData): Observable<Product> {
 
-    return this.http.post<Product>(
-      environment.productUrl,
-      form
-    );
-
+  createProduct(formData: FormData): Observable<Product> {
+    // Angular handles Content-Type boundaries automatically when passing FormData
+    return this.http.post<Product>(environment.productUrl, formData, {
+      headers: this.getHeaders()
+    });
   }
 
-  updateProduct(id: string, form: FormData) {
-
-    return this.http.put(
-      `${environment.productUrl}/${id}`,
-      form
-    );
-
+  updateProduct(id: string, formData: FormData): Observable<Product> {
+    return this.http.put<Product>(`${environment.productUrl}/${id}`, formData, {
+      headers: this.getHeaders()
+    });
   }
 
-  deleteProduct(id: string) {
-
-    return this.http.delete(
-      `${environment.productUrl}/${id}`
-    );
-
+  deleteProduct(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.productUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
   }
-
 }

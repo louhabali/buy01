@@ -8,16 +8,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document("media")
+@Document(collection="media")
 public class Media {
 
     @Id
     private String id;
 
-    private String fileName;
+    private String imagePath;
 
-    private String url;
-
-    private String sellerId;
+    private String productId;
 
 }
