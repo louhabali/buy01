@@ -1,10 +1,9 @@
 package buy01.gateway_service.security;
 
+import buy01.gateway_service.service.UserBlacklistService;
+import buy01.gateway_service.service.UserServiceClient;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-
-import java.nio.charset.StandardCharsets;
-
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -16,10 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
-import buy01.gateway_service.service.UserBlacklistService;
-import buy01.gateway_service.service.UserServiceClient;
 import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -34,95 +32,74 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
-        
+
         // Public endpoints
         if (path.startsWith("/auth/login") ||
                 path.startsWith("/auth/register") ||
                 (method == HttpMethod.GET && path.startsWith("/products")) ||
                 (method == HttpMethod.GET && path.startsWith("/uploads/")) ||
-                (method == HttpMethod.POST && path.startsWith("/media/upload"))) {
-
+                (method == HttpMethod.POST && path.startsWith("/media/images"))) {
             return chain.filter(exchange);
         }
 
-        String authHeader = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION);
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return unauthorizedResponse(exchange, "Missing or invalid Authorization header");
         }
 
         String token = authHeader.substring(7);
-        
+
         if (!jwtService.validateToken(token)) {
-            System.out.println("Missing or invalid Authorization header" + authHeader);
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            return unauthorizedResponse(exchange, "Invalid JWT Token");
         }
 
         Claims claims = jwtService.extractClaims(token);
-
         String username = claims.getSubject();
-        String role = claims.get("role", String.class);
         String userId = claims.get("userId", String.class);
+        String jwtRole = claims.get("role", String.class);
 
-        // ⚡ Non-blocking reactive pipeline for authorization checks
+        // Check if user is blacklisted
         return userBlacklistService.isBlacklisted(userId)
                 .flatMap(isBlacklisted -> {
                     if (Boolean.TRUE.equals(isBlacklisted)) {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-                        String body = """
-                                {
-                                  "message": "User is blacklisted"
-                                }
-                                """;
-
-                        DataBuffer buffer = exchange.getResponse()
-                                .bufferFactory()
-                                .wrap(body.getBytes(StandardCharsets.UTF_8));
-
-                        return exchange.getResponse().writeWith(Mono.just(buffer));
+                        return unauthorizedResponse(exchange, "User is blacklisted");
                     }
 
-                    // If not blacklisted, check if the user exists
-                    return userServiceClient.exists(userId)
-                            .flatMap(exists -> {
-                                if (!exists) {
-                                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                    exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-                                    String body = """
-                                            {
-                                              "message": "User does not exist"
-                                            }
-                                            """;
-
-                                    DataBuffer buffer = exchange.getResponse()
-                                            .bufferFactory()
-                                            .wrap(body.getBytes(StandardCharsets.UTF_8));
-
-                                    return exchange.getResponse().writeWith(Mono.just(buffer));
+                    // Fetch fresh user verification
+                    return userServiceClient.getUserVerification(userId)
+                            .flatMap(userDto -> {
+                                if (!userDto.isExists()) {
+                                    return unauthorizedResponse(exchange, "User does not exist");
                                 }
 
-                                //  Mutate request and forward downstream
+                                // Use updated DB role; fallback to JWT role if DB role is null
+                                String activeRole = (userDto.getRole() != null) ? userDto.getRole() : jwtRole;
+
+                                // Mutate request with updated headers and forward downstream
                                 ServerHttpRequest request = exchange.getRequest()
                                         .mutate()
                                         .header("X-User-Id", userId)
                                         .header("X-Username", username)
-                                        .header("X-Role", role)
+                                        .header("X-Role", activeRole)
                                         .build();
 
-                                ServerWebExchange newExchange = exchange.mutate()
-                                        .request(request)
-                                        .build();
-
-                                return chain.filter(newExchange);
+                                return chain.filter(exchange.mutate().request(request).build());
                             });
                 });
+    }
+
+    // Helper method to keep code clean & readable
+    private Mono<Void> unauthorizedResponse(ServerWebExchange exchange, String message) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        String body = String.format("{\"message\": \"%s\"}", message);
+        DataBuffer buffer = exchange.getResponse()
+                .bufferFactory()
+                .wrap(body.getBytes(StandardCharsets.UTF_8));
+
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
     @Override

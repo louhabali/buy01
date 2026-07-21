@@ -40,6 +40,7 @@ public class ProductService {
             String userRole) {
 
         validateUserData(userId);
+        System.out.println("USERROLE :"+userRole);
 
         if (!"SELLER".equalsIgnoreCase(userRole)) {
                throw new ForbiddenException("You do not have permission to perform this action.");

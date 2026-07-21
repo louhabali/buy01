@@ -29,7 +29,7 @@ public class ProductController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
             @RequestHeader("X-User-Id") String userId,
-            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole,
+            @RequestHeader(value = "X-Role") String userRole,
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam Double price,
@@ -51,7 +51,7 @@ public class ProductController {
     public Product updateProduct(
             @PathVariable String id,
             @RequestHeader("X-User-Id") String userId,
-            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole,
+            @RequestHeader(value = "X-Role") String userRole,
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam Double price,
@@ -74,7 +74,7 @@ public class ProductController {
     public void deleteProduct(
             @PathVariable String id,
             @RequestHeader("X-User-Id") String userId,
-            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole
+            @RequestHeader(value = "X-Role") String userRole
     ) {
         productService.deleteProduct(id, userId, userRole);
     }

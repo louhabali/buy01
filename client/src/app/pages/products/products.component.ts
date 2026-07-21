@@ -39,7 +39,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   get canAddProduct(): boolean {
-    const role = this.currentUser?.role || this.authService.getRole();
+    const role = this.currentUser?.role || this.authService.getRole() ;
     return role === 'SELLER';
   }
 
@@ -47,10 +47,15 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getAllProducts().subscribe({
       next: (data: any[]) => {
+        // check if he owns the product
+    
+        
+        console.log(data)
         if (Array.isArray(data)) {
           this.products = data.map(p => ({
             ...p,
             id: p.id || p._id || (p._id && p._id.$oid ? p._id.$oid : '')
+            
           }));
         } else {
           this.products = [];

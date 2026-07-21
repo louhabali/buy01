@@ -13,7 +13,8 @@ export const routes: Routes = [
   {
     path: '',
     component: ProductsComponent,
-    pathMatch: 'full'
+    pathMatch: 'full',
+    canActivate : [authGuard]
   },
   {
     path: 'login',

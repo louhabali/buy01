@@ -16,12 +16,14 @@ export class ProductCardComponent {
 
   @Output() edit = new EventEmitter<Product>();
   @Output() delete = new EventEmitter<string>();
+  
   showDeleteConfirm = false;
+
   constructor(private router: Router) {}
 
+  // Simple getter: returns true if product belongs to current user
   get isOwner(): boolean {
-    const pUserId = this.product?.userId;
-    return this.currentUserRole === 'SELLER' && !!pUserId && pUserId === this.currentUserId;
+    return !!this.currentUserId && this.product?.userId === this.currentUserId;
   }
 
   get truncatedDescription(): string {
@@ -62,6 +64,7 @@ export class ProductCardComponent {
     event.stopPropagation();
     this.edit.emit(this.product);
   }
+
   openDeleteConfirm(event: Event): void {
     event.stopPropagation();
     this.showDeleteConfirm = true;
@@ -80,5 +83,4 @@ export class ProductCardComponent {
     }
     this.showDeleteConfirm = false;
   }
- 
 }

@@ -1,5 +1,7 @@
 package buy01.gateway_service.service;
 
+import buy01.gateway_service.dto.UserVerificationResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -10,16 +12,18 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class UserServiceClient {
 
-    WebClient webClient = WebClient.create("http://localhost:8081");
+    private final WebClient webClient = WebClient.create("http://localhost:8081");
 
-    public Mono<Boolean> exists(String userId) {
-
+    public Mono<UserVerificationResponse> getUserVerification(String userId) {
         return webClient.get()
-    .uri("/internal/users/{id}/exists", userId)
-                .exchangeToMono(response -> {
-                    System.out.println("Status = " + response.statusCode());
-                    return Mono.just(response.statusCode().is2xxSuccessful());
-                })
+                .uri("/internal/users/{id}/exists", userId)
+                .retrieve()
+                // Handles 404 Not Found cleanly by returning exists = false
+                .onStatus(status -> status.equals(HttpStatus.NOT_FOUND), 
+                        response -> Mono.empty())
+                // Parses JSON response: {"exists": true, "role": "SELLER"}
+                .bodyToMono(UserVerificationResponse.class)
+                .defaultIfEmpty(new UserVerificationResponse(false, null))
                 .doOnError(Throwable::printStackTrace);
     }
 }
