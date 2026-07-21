@@ -35,7 +35,7 @@ export class ProductCardComponent {
 
   get primaryImage(): string {
     if (this.product?.imageUrls && Array.isArray(this.product.imageUrls) && this.product.imageUrls.length > 0) {
-      return this.product.imageUrls[0] || 'assets/placeholder-product.png';
+      return this.product.imageUrls[0];
     }
     return 'assets/placeholder-product.png';
   }

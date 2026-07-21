@@ -83,10 +83,8 @@ export class ProductPageComponent implements OnInit {
   }
 
   get currentImage(): string {
-    if (this.imagePreviews.length > 0) {
-      return this.imagePreviews[this.selectedImageIndex] || 'assets/placeholder-product.png';
-    }
-    return 'assets/placeholder-product.png';
+      return this.imagePreviews[this.selectedImageIndex];
+    
   }
 
   selectImage(index: number): void {
