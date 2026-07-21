@@ -77,4 +77,25 @@ export class ProductsComponent implements OnInit, OnDestroy {
       this.userSub.unsubscribe();
     }
   }
+  onDeleteProduct(productId: string): void {
+  if (!productId) {
+    console.error('Cannot delete: Product ID is empty');
+    return;
+  }
+
+  this.productService.deleteProduct(productId).subscribe({
+    next: () => {
+      // Instantly remove the deleted product from local array to update UI
+      this.products = this.products.filter(
+        (p) => p.id !== productId && (p as any)._id !== productId
+      );
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Failed to delete product', err);
+      this.error = err?.error?.errorMessage || err?.error?.message || 'Could not delete product from backend.';
+      this.cdr.detectChanges();
+    }
+  });
+}
 }
