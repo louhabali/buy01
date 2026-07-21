@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +51,26 @@ public class MediaController {
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS))
                 .contentType(MediaType.IMAGE_JPEG)
+                .body(resource);
+    }
+
+    // download 
+    @GetMapping("/images/{id}/download")
+    public ResponseEntity<Resource> downloadImage(
+            @PathVariable String id
+    ) throws IOException {
+
+        Path path = Paths.get("uploads").resolve(id).toAbsolutePath().normalize();
+
+        if (!Files.exists(path)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + id + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
 }

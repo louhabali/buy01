@@ -206,4 +206,21 @@ export class ProductPageComponent implements OnInit {
   goBack(): void {
     this.location.back();
   }
+  downloadCurrentImage(): void {
+    const imageUrl = this.currentImage;
+    if (!imageUrl || imageUrl.includes('assets/placeholder')) return;
+
+    const fileName = imageUrl.split('/uploads/').pop();
+    if (!fileName) return;
+
+    const downloadUrl = `https://localhost:8089/media/images/${fileName}/download`;
+
+    // Trigger standard browser download
+    const anchor = document.createElement('a');
+    anchor.href = downloadUrl;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }
 }

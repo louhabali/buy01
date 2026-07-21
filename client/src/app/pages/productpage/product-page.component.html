@@ -315,12 +315,27 @@
     (click)="closeFullImageView()"
     class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8">
     
-    <button 
-      type="button"
-      (click)="closeFullImageView()" 
-      class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 p-3 rounded-full cursor-pointer z-10">
-      ✕
-    </button>
+    <!-- Action Controls (Top Right) -->
+    <div class="absolute top-6 right-6 flex items-center gap-3 z-10">
+      <!-- Download Button -->
+      <button 
+        type="button"
+        (click)="downloadCurrentImage(); $event.stopPropagation()" 
+        title="Download Image"
+        class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full cursor-pointer transition-colors flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </button>
+
+      <!-- Close Button -->
+      <button 
+        type="button"
+        (click)="closeFullImageView()" 
+        class="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full cursor-pointer transition-colors">
+        ✕
+      </button>
+    </div>
 
     <div class="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center" (click)="$event.stopPropagation()">
       <img 
@@ -345,5 +360,4 @@
       </button>
     </div>
   </div>
-
 </div>
