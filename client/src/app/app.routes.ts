@@ -8,7 +8,6 @@ import { authGuard } from '../guards/auth.guard';
 import { guestGuard } from '../guards/guest.guard';
 import { ProductsComponent } from './pages/products/products.component';
 import { AddProductComponent } from './pages/add-product/add-product.component';
-import { EditProductComponent } from './pages/edit-product/edit-product.component';
 import { ProductPageComponent } from './pages/productpage/product-page.component';
 export const routes: Routes = [
   {
@@ -35,7 +34,6 @@ export const routes: Routes = [
  
   { path: 'products', component: ProductsComponent, canActivate: [authGuard] },
   { path: 'products/add', component: AddProductComponent, canActivate: [authGuard] },
-  { path: 'products/edit/:id', component: EditProductComponent, canActivate: [authGuard] },
    { path: 'products/:id', component: ProductPageComponent },
   { path: 'unauthorized', component: ErrorComponent, data: { code: '401' } },
   { path: 'forbidden', component: ErrorComponent, data: { code: '403' } },
