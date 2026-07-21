@@ -24,7 +24,7 @@ export class MediaService {
     });
 
     return this.http.post<string[]>(
-      `${environment.mediaUrl}/upload`,
+      `${environment.mediaUrl}/images`,
       formData
     );
 

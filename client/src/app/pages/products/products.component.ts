@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ProductService } from '../../services/product.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, ProfileResponse } from '../../services/auth.service';
+import { UserService } from '../../services/user.service';
 import { Product } from '../../models/product';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
 
@@ -12,26 +14,32 @@ import { ProductCardComponent } from '../../../shared/product-card/product-card.
   imports: [CommonModule, RouterLink, ProductCardComponent],
   templateUrl: './products.component.html'
 })
-export class ProductsComponent implements OnInit {
+export class ProductsComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   isLoading = true;
   error: string | null = null;
+  currentUser: ProfileResponse | null = null;
+  private userSub!: Subscription;
 
   constructor(
     private productService: ProductService,
     public authService: AuthService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    // In-memory subscription
+    this.userSub = this.userService.user$.subscribe((user) => {
+      this.currentUser = user;
+      this.cdr.detectChanges();
+    });
+
     this.loadProducts();
   }
 
-  // Helper check for seller/admin roles
   get canAddProduct(): boolean {
-    const role = this.authService.getRole();
-    console.log(this.authService.getProfile, role );
-    // Adjust role values ('SELLER', 'ROLE_SELLER', etc.) to match your backend string format
+    const role = this.currentUser?.role || this.authService.getRole();
     return role === 'SELLER';
   }
 
@@ -57,5 +65,11 @@ export class ProductsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSub) {
+      this.userSub.unsubscribe();
+    }
   }
 }

@@ -1,8 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { AuthService , ProfileResponse} from '../../app/services/auth.service';
-
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../app/services/auth.service';
+import { UserService } from '../../app/services/user.service';
 
 @Component({
   selector: 'app-navbar',
@@ -10,55 +11,56 @@ import { AuthService , ProfileResponse} from '../../app/services/auth.service';
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './navbar.component.html'
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
+  private userService = inject(UserService);
   private router = inject(Router);
+  private userSub!: Subscription;
 
   username: string = 'Curator';
   avatarUrl: string | null = null;
   isLoading: boolean = true;
 
   ngOnInit(): void {
+    // Subscribe to memory stream
+    this.userSub = this.userService.user$.subscribe((user) => {
+      if (user?.name) {
+        this.username = user.name;
+      }
+      if (user?.avatarUrl) {
+        this.avatarUrl = user.avatarUrl.startsWith('https') 
+          ? user.avatarUrl 
+          : `https://localhost:8089${user.avatarUrl}`;
+      } else {
+        this.avatarUrl = null;
+      }
+    });
+
+    // Fetch fresh profile from server on boot
     this.fetchUserProfile();
   }
 
   fetchUserProfile(): void {
     this.isLoading = true;
-
-    // Call your existing getProfile() method
     this.authService.getProfile().subscribe({
-      next: (user: ProfileResponse) => {
-        // Map backend 'name' field
-        if (user.name) {
-          this.username = user.name;
-        }
-
-        // Process avatar URL
-        if (user.avatarUrl) {
-          // If relative path from backend (e.g. /uploads/...), prepend your backend/gateway domain if needed
-          this.avatarUrl = user.avatarUrl.startsWith('https') 
-            ? user.avatarUrl 
-            : `https://localhost:8089${user.avatarUrl}`;
-        }
-
+      next: () => {
         this.isLoading = false;
       },
       error: (err) => {
-        console.warn('Could not fetch backend profile meta:', err);
-        const localUser = localStorage.getItem('username');
-        if (localUser) {
-          this.username = localUser;
-        }
+        console.warn('Could not fetch backend profile:', err);
         this.isLoading = false;
       }
     });
   }
 
   logout(): void {
-    this.authService.removeToken();
-     localStorage.removeItem('username');
-  this.isLoading = false;
-
+    this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSub) {
+      this.userSub.unsubscribe();
+    }
   }
 }

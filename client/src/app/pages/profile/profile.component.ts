@@ -1,9 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService, ProfileResponse } from '../../services/auth.service';
 import { MediaService } from '../../services/media.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-profile',
@@ -11,17 +13,20 @@ import { MediaService } from '../../services/media.service';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.component.html'
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
   private fb = inject(NonNullableFormBuilder);
   private authService = inject(AuthService);
   private mediaService = inject(MediaService);
+  private us = inject(UserService);
   private router = inject(Router);
 
-  // Form setup explicitly matches your ProfileResponse keys now
+  private userSub!: Subscription;
+
+  // Form setup explicitly matches ProfileResponse keys
   form = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
-    avatarUrl: [''] ,
+    avatarUrl: [''],
     role: ['', [Validators.required]]
   });
 
@@ -33,28 +38,37 @@ export class ProfileComponent implements OnInit {
   avatarPreview = '';
 
   ngOnInit(): void {
+    // 1. Subscribe to the in-memory UserService stream
+    this.userSub = this.us.user$.subscribe((data) => {
+      if (data) {
+        this.user = data;
+        
+        // Patch form only when not actively editing to preserve user inputs
+        if (!this.editing) {
+          this.form.patchValue({
+            username: data.name || '',
+            email: data.email || '',
+            avatarUrl: data.avatarUrl || '',
+            role: data.role || 'CLIENT'
+          });
+          this.avatarPreview = data.avatarUrl || '';
+        }
+      }
+    });
+
+    // 2. Fetch fresh backend profile (automatically pushes to UserService)
     this.loadProfile();
   }
 
   loadProfile(): void {
+    this.loading = true;
     this.authService.getProfile().subscribe({
       next: (data: ProfileResponse) => {
-        console.log('Loaded Profile Response:', data);
-        
-        this.user = data;
-        
-        this.form.patchValue({
-          username: data.name,
-          email: data.email,
-          avatarUrl: data.avatarUrl || 'none' ,
-          role: data.role || 'CLIENT'
-        });
-        
-        this.avatarPreview = data.avatarUrl || '';
+        // AuthService.getProfile() automatically invokes UserService.setUser(data)
         this.loading = false;
       },
       error: (err) => {
-        console.error(err);
+        console.error('Cannot load profile:', err);
         this.error = "Cannot load profile";
         this.loading = false;
       }
@@ -73,12 +87,25 @@ export class ProfileComponent implements OnInit {
     reader.readAsDataURL(this.selectedAvatar);
   }
 
-  editProfile() { this.editing = true; }
+  editProfile(): void { 
+    this.editing = true; 
+  }
 
-  cancelEdit() {
+  cancelEdit(): void {
     this.editing = false;
     this.selectedAvatar = null;
-    this.loadProfile(); // Reset to server state
+    this.error = '';
+    
+    // Re-patch form values from current memory state
+    if (this.user) {
+      this.form.patchValue({
+        username: this.user.name || '',
+        email: this.user.email || '',
+        avatarUrl: this.user.avatarUrl || '',
+        role: this.user.role || 'CLIENT'
+      });
+      this.avatarPreview = this.user.avatarUrl || '';
+    }
   }
 
   saveProfile(): void {
@@ -88,7 +115,9 @@ export class ProfileComponent implements OnInit {
 
     if (this.selectedAvatar) {
       this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
-        next: (urls) => this.updateBackend(urls[0]),
+        next: (urls) => {
+          this.updateBackend(urls[0]);
+        },
         error: () => {
           this.loading = false;
           this.error = 'Failed to upload avatar.';
@@ -107,18 +136,17 @@ export class ProfileComponent implements OnInit {
       avatarUrl: avatarUrl,
       role: values.role 
     }).subscribe({
-      next: (updatedUser: any) => {
-        console.log('Updated Profile Response:', updatedUser);
-        this.user = updatedUser;
-        
-        this.form.patchValue({
-          username: updatedUser.name || updatedUser.username,
-          email: updatedUser.email,
-          avatarUrl: updatedUser.avatarUrl || '',
-          role: updatedUser.role || 'CLIENT'
-        });
-        
-        this.avatarPreview = updatedUser.avatar || updatedUser.avatarUrl || '';
+      next: (updatedUser: ProfileResponse) => {
+        // Normalize fields coming from backend
+        const normalizedUser: ProfileResponse = {
+          ...updatedUser,
+          name: updatedUser.name || (updatedUser as any).username || values.username,
+          avatarUrl: updatedUser.avatarUrl || (updatedUser as any).avatar || avatarUrl
+        };
+
+        // Broadcast to memory store (Navbar & Catalog will instantly update)
+        this.us.setUser(normalizedUser);
+
         this.editing = false;
         this.loading = false;
         this.selectedAvatar = null;
@@ -133,5 +161,11 @@ export class ProfileComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  ngOnDestroy(): void {
+    if (this.userSub) {
+      this.userSub.unsubscribe();
+    }
   }
 }
