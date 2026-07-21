@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +31,6 @@ public class MediaController {
     public List<String> uploadImages(
             @RequestPart("images") MultipartFile[] images
     ) {
-
         return mediaService.upload(images);
     }
 
@@ -41,7 +39,7 @@ public class MediaController {
             @PathVariable String id
     ) throws IOException {
 
-        Path path = Paths.get("/app/uploads/" + id);
+        Path path = Paths.get("uploads").resolve(id).toAbsolutePath().normalize();
 
         if (!Files.exists(path)) {
             return ResponseEntity.notFound().build();
@@ -50,12 +48,7 @@ public class MediaController {
         Resource resource = new FileSystemResource(path);
 
         return ResponseEntity.ok()
-                .cacheControl(
-                        CacheControl.maxAge(
-                                7,
-                                TimeUnit.DAYS
-                        )
-                )
+                .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS))
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(resource);
     }

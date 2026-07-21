@@ -28,61 +28,36 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product createProduct(
-
-            @RequestHeader("X-User-Id")
-            String userId,
-
-            @RequestParam
-            String name,
-
-            @RequestParam
-            String description,
-
-            @RequestParam
-            Double price,
-
-            @RequestParam
-            Integer quantity,
-
-            @RequestParam(required = false)
-            MultipartFile[] images
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam Double price,
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) MultipartFile[] images
     ) {
-
         return productService.createProduct(
                 name,
                 description,
                 price,
                 quantity,
                 images,
-                userId
+                userId,
+                userRole
         );
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Product updateProduct(
-
-            @PathVariable
-            String id,
-
-            @RequestHeader("X-User-Id")
-            String userId,
-
-            @RequestParam
-            String name,
-
-            @RequestParam
-            String description,
-
-            @RequestParam
-            Double price,
-
-            @RequestParam
-            Integer quantity,
-
-            @RequestParam(required = false)
-            MultipartFile[] images
+            @PathVariable String id,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam Double price,
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) MultipartFile[] images
     ) {
-
         return productService.updateProduct(
                 id,
                 name,
@@ -90,15 +65,17 @@ public class ProductController {
                 price,
                 quantity,
                 images,
-                userId
+                userId,
+                userRole
         );
     }
 
     @DeleteMapping("/{id}")
     public void deleteProduct(
             @PathVariable String id,
-            @RequestHeader("X-User-Id") String userId
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-Role", defaultValue = "CLIENT") String userRole
     ) {
-        productService.deleteProduct(id, userId);
+        productService.deleteProduct(id, userId, userRole);
     }
 }

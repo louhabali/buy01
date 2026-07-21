@@ -4,8 +4,10 @@ import buy01.product_service.client.MediaClient;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ public class ProductService {
 
     public Product getProduct(String id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
     }
 
     public Product createProduct(
@@ -32,20 +34,27 @@ public class ProductService {
             Double price,
             Integer quantity,
             MultipartFile[] images,
-            String userId) {
+            String userId,
+            String userRole) {
+
+        validateUserData(userId);
+        
+        if (!"SELLER".equalsIgnoreCase(userRole)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: Only sellers can create products");
+        }
+
+        validateProductDetails(name, price, quantity);
 
         List<String> imageUrls = new ArrayList<>();
-
-        if (images != null && images.length > 0) {
+        if (hasValidImages(images)) {
             imageUrls = mediaClient.uploadImages(images);
         }
 
         Product product = Product.builder()
-                .name(name)
-                .description(description)
+                .name(name.trim())
+                .description(description != null ? description.trim() : "")
                 .price(price)
                 .quantity(quantity)
-                // .sellerId(userId)
                 .userId(userId)
                 .imageUrls(imageUrls)
                 .build();
@@ -60,44 +69,69 @@ public class ProductService {
             Double price,
             Integer quantity,
             MultipartFile[] images,
-            String userId) {
+            String userId,
+            String userRole) {
 
-        Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Product product = getProduct(id);
+        verifyOwnership(product, userId, userRole);
 
-        if (!product.getUserId().equals(userId)) {
-            throw new SecurityException("You are not the owner");
-        }
+        validateProductDetails(name, price, quantity);
 
-        product.setName(name);
-        product.setDescription(description);
+        product.setName(name.trim());
+        product.setDescription(description != null ? description.trim() : "");
         product.setPrice(price);
         product.setQuantity(quantity);
 
-        if (images != null && images.length > 0) {
-
+        if (hasValidImages(images)) {
             List<String> imageUrls = mediaClient.uploadImages(images);
-
             product.setImageUrls(imageUrls);
         }
 
         return repository.save(product);
     }
 
-    public void deleteProduct(String id, String userId) {
-
-        Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        if (!product.getUserId().equals(userId)) {
-            throw new SecurityException("You are not the owner");
-        }
-
+    public void deleteProduct(String id, String userId, String userRole) {
+        Product product = getProduct(id);
+        verifyOwnership(product, userId, userRole);
         repository.delete(product);
     }
 
-    // Kafka
     public void deleteProductsByUserId(String userId) {
-        repository.deleteByUserId(userId);
+        if (userId != null && !userId.isBlank()) {
+            repository.deleteByUserId(userId);
+        }
+    }
+
+    private void verifyOwnership(Product product, String userId, String userRole) {
+        validateUserData(userId);
+        
+        boolean isSeller = "SELLER".equalsIgnoreCase(userRole);
+        boolean isOwner = product.getUserId() != null && product.getUserId().equals(userId);
+
+        if (!isSeller || !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: Unauthorized action");
+        }
+    }
+
+    private void validateUserData(String userId) {
+        if (userId == null || userId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User context missing or unauthenticated");
+        }
+    }
+
+    private void validateProductDetails(String name, Double price, Integer quantity) {
+        if (name == null || name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product name is required");
+        }
+        if (price == null || price < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product price");
+        }
+        if (quantity == null || quantity < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product quantity");
+        }
+    }
+
+    private boolean hasValidImages(MultipartFile[] images) {
+        return images != null && images.length > 0 && !images[0].isEmpty();
     }
 }
