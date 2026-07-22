@@ -40,7 +40,7 @@ public class UserService {
         } else if (userRepository.findByUsername(username).isPresent()) {
             throw new BadRequestException("Username already exists");
         }
-        Role checkedRole = (role == "SELLER") ? Role.SELLER : Role.CLIENT;
+        Role checkedRole = (role.equals("SELLER")) ? Role.SELLER : Role.CLIENT;
         User user = User.builder()
                 .username(username)
                 .email(cleanEmail)
