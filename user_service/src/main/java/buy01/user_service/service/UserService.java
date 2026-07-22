@@ -131,7 +131,7 @@ public class UserService {
     public Map<String, Object> deleteProfile(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        blacklistService.blacklistUser(user.getId());
+        System.out.println("11111111111111");
         userRepository.delete(user);
         // Send UserDeletedEvent to Kafka
         producer.sendUserDeletedEvent(new UserDeletedEvent(userId));

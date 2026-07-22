@@ -125,6 +125,7 @@ public class ProductService {
     }
 
     public void deleteProductsByUserId(String userId) {
+        System.out.println("DELETAAAAAAAAAAWWWWWWWWWWWWWWWWWWWWWWWWWW :" + userId);
         if (userId != null && !userId.isBlank()) {
             repository.deleteByUserId(userId);
         }
