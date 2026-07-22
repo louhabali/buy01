@@ -11,6 +11,10 @@ spring:
   application:
     name: gateway-service
 
+  # Fix: Increase reactive codec memory buffer for multi-part file uploads
+  codec:
+    max-in-memory-size: 20MB
+
   cloud:
     gateway:
       globalcors:
@@ -43,10 +47,12 @@ spring:
           uri: http://localhost:8083
           predicates:
             - Path=/media/**
+
         - id: media_uploads
           uri: http://localhost:8083
           predicates:
             - Path=/uploads/**
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

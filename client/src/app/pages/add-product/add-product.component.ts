@@ -14,6 +14,8 @@ export class AddProductComponent {
   private productService = inject(ProductService);
   private router = inject(Router);
 
+  readonly MAX_IMAGES = 5;
+
   name = '';
   description = '';
   price: number | null = null;
@@ -45,42 +47,53 @@ export class AddProductComponent {
   }
 
   onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
+  const input = event.target as HTMLInputElement;
+  if (!input.files?.length) return;
 
-    this.errorMessage = '';
-    const files: FileList = input.files;
-    const fileErrors: string[] = [];
+  this.errorMessage = '';
+  const incomingFiles = Array.from(input.files);
+  const fileErrors: string[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      if (!file.type.startsWith('image/')) {
-        fileErrors.push(`"${file.name}" is not an image file.`);
-        continue;
-      }
-
-      if (file.size > 2 * 1024 * 1024) {
-        fileErrors.push(`"${file.name}" exceeds the 2MB size limit.`);
-        continue;
-      }
-
-      this.selectedFiles.push(file);
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previews.push(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  // Check total count limit BEFORE processing
+  if (this.selectedFiles.length + incomingFiles.length > this.MAX_IMAGES) {
+    if (this.selectedFiles.length === 0) {
+      this.errorMessage = `You can only upload up to ${this.MAX_IMAGES} images total.`;
+    } else {
+      this.errorMessage = `Maximum ${this.MAX_IMAGES} images allowed. You already have ${this.selectedFiles.length} selected.`;
     }
-
-    if (fileErrors.length > 0) {
-      this.errorMessage = fileErrors.join('\n');
-    }
-
-    // Clear input value so selecting the same file again works
+    // Crucial: reset input value immediately so files aren't stuck in DOM
     input.value = '';
+    return;
   }
+
+  // Process valid files
+  for (const file of incomingFiles) {
+    if (!file.type.startsWith('image/')) {
+      fileErrors.push(`"${file.name}" is not an image file.`);
+      continue;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      fileErrors.push(`"${file.name}" exceeds the 2MB size limit.`);
+      continue;
+    }
+
+    this.selectedFiles.push(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.previews.push(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (fileErrors.length > 0) {
+    this.errorMessage = fileErrors.join('\n');
+  }
+
+  // Reset input value so re-selecting files works as expected
+  input.value = '';
+}
 
   removeImage(index: number): void {
     this.selectedFiles.splice(index, 1);
@@ -127,6 +140,11 @@ export class AddProductComponent {
       errors.push('Stock quantity exceeds maximum limit (999,999).');
     }
 
+    // Frontend validation check for max files before sending request
+    if (this.selectedFiles.length > this.MAX_IMAGES) {
+      errors.push(`Maximum ${this.MAX_IMAGES} images allowed per product.`);
+    }
+
     if (errors.length > 0) {
       this.errorMessage = errors.join('\n');
       return;
@@ -148,9 +166,15 @@ export class AddProductComponent {
         this.router.navigate(['/products']);
       },
       error: (err) => {
-        console.error(err);
+        console.error('Error creating product:', err);
         this.loading = false;
-        this.errorMessage = err?.error?.errorMessage || err?.error?.message || 'Failed to create product listing. Please try again.';
+
+        // Extracts custom errorMessage from GlobalExceptionHandler, standard Spring body, or default string
+        this.errorMessage =
+          err?.error?.errorMessage ||
+          err?.error?.message ||
+          err?.error?.error ||
+          'Failed to create product listing. Please check image count and sizes.';
       }
     });
   }

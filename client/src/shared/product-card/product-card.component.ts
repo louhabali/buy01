@@ -37,13 +37,13 @@ export class ProductCardComponent {
     if (this.product?.imageUrls && Array.isArray(this.product.imageUrls) && this.product.imageUrls.length > 0) {
       return this.product.imageUrls[0];
     }
-    return 'assets/placeholder-product.png';
+    return 'noimage.png';
   }
 
   onImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
     if (imgElement) {
-      imgElement.src = 'assets/placeholder-product.png';
+      imgElement.src = './noimage.png';
     }
   }
 

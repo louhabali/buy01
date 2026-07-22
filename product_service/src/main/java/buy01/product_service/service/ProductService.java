@@ -5,11 +5,13 @@ import buy01.product_service.exceptions.ForbiddenException;
 import buy01.product_service.model.Product;
 import buy01.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.apache.coyote.BadRequestException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -218,6 +220,6 @@ public class ProductService {
     }
 
     private boolean hasValidImages(MultipartFile[] images) {
-        return images != null && images.length > 0 && !images[0].isEmpty();
+        return images != null && images.length > 0 && !images[0].isEmpty() ;
     }
 }
