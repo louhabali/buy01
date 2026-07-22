@@ -240,7 +240,7 @@ export class ProductPageComponent implements OnInit {
       next: () => {
         this.isDeleting = false;
         this.closeDeleteModal();
-        this.router.navigate(['/products']);
+        this.router.navigate(['/']);
       },
       error: (err) => {
         this.error = err?.error?.errorMessage ?? 'Failed to delete product';
@@ -310,7 +310,7 @@ private getImageId(imageUrl: string): string {
   }
 
   goBack(): void {
-    this.router.navigate(['/products']);
+    this.router.navigate(['/']);
   }
 
  private checkOwnership(): void {

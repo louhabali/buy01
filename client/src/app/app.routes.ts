@@ -13,7 +13,6 @@ export const routes: Routes = [
   {
     path: '',
     component: ProductsComponent,
-    pathMatch: 'full',
     canActivate : [authGuard]
   },
   {
@@ -33,7 +32,7 @@ export const routes: Routes = [
     canActivate : [authGuard]
   },
  
-  { path: 'products', component: ProductsComponent, canActivate: [authGuard] },
+
   { path: 'products/add', component: AddProductComponent, canActivate: [authGuard] },
    { path: 'products/:id', component: ProductPageComponent },
   { path: 'unauthorized', component: ErrorComponent, data: { code: '401' } },

@@ -163,7 +163,7 @@ export class AddProductComponent {
 
     this.productService.createProduct(formData).subscribe({
       next: () => {
-        this.router.navigate(['/products']);
+        this.router.navigate(['/']);
       },
       error: (err) => {
         console.error('Error creating product:', err);

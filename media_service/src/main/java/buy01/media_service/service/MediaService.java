@@ -33,7 +33,7 @@ public class MediaService {
                 // Transfer file bytes safely
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                imageUrls.add("http://localhost:8089/uploads/" + fileName);
+                imageUrls.add("https://localhost:8089/uploads/" + fileName);
 
                 System.out.println("Saved image: " + filePath.toAbsolutePath());
             }
