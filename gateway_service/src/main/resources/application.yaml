@@ -1,17 +1,10 @@
 server:
   port: 8089
-  ssl:
-    enabled: true
-    key-store: classpath:gateway.p12
-    key-store-password: 123456
-    key-store-type: PKCS12
-    key-alias: gateway
 
 spring:
   application:
     name: gateway-service
 
-  # Fix: Increase reactive codec memory buffer for multi-part file uploads
   codec:
     max-in-memory-size: 20MB
 
@@ -21,7 +14,9 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins:
+              - "https://localhost:4200"
               - "http://localhost:4200"
+              - "http://localhost:8080"
             allowedMethods:
               - GET
               - POST

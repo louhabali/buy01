@@ -24,7 +24,7 @@ export class MediaService {
     });
 
     return this.http.post<string[]>(
-      `${environment.mediaUrl}/images`,
+      `${environment.apiUrl}/media/images`,
       formData
     );
 
@@ -32,13 +32,13 @@ export class MediaService {
   deleteImage(fileName: string): Observable<void> {
 
     return this.http.delete<void>(
-      `${environment.mediaUrl}/images/${fileName}`
+      `${environment.apiUrl}/media/images/${fileName}`
     );
 
   }
   getImageUrl(fileName: string): string {
 
-    return `${environment.mediaUrl}/images/${fileName}`;
+    return `${environment.apiUrl}/media/images/${fileName}`;
 
   }
 

@@ -1,6 +1,6 @@
 {
   "project": {
-    "name": "buy01",
+    "name": "npx ng serve --proxy-config proxy.conf.json",
     "description": "A scalable marketplace where clients browse products and sellers manage their own catalog and images using a microservices architecture.",
     "goal": "Learn and apply real-world backend architecture using Spring Boot microservices, JWT authentication, and MongoDB.",
     "architecture": "Microservices (User, Product, Media, Gateway)",

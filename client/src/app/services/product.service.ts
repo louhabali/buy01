@@ -27,11 +27,11 @@ export class ProductService {
   }
 
   getAllProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(environment.productUrl);
+    return this.http.get<Product[]>( `${environment.apiUrl}/products`);
   }
     getProduct(id: string): Observable<Product> {
      return this.http.get<Product>(
-       `${environment.productUrl}/${id}`
+       `${environment.apiUrl}/products/${id}`
      );
    }
    getProductById(id: string): Observable<Product> {
@@ -41,20 +41,21 @@ export class ProductService {
 
   createProduct(formData: FormData): Observable<Product> {
     // Angular handles Content-Type boundaries automatically when passing FormData
-    return this.http.post<Product>(environment.productUrl, formData, {
+    return this.http.post<Product>(`${environment.apiUrl}/products`, formData, {
       headers: this.getHeaders()
     });
   }
 
   updateProduct(id: string, formData: FormData): Observable<Product> {
-    return this.http.put<Product>(`${environment.productUrl}/${id}`, formData, {
+    return this.http.put<Product>(`${environment.apiUrl}/products/${id}`, formData, {
       headers: this.getHeaders()
     });
   }
 
   deleteProduct(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.productUrl}/${id}`, {
+    return this.http.delete<void>(`${environment.apiUrl}/products/${id}`, {
       headers: this.getHeaders()
     });
   }
+  
 }

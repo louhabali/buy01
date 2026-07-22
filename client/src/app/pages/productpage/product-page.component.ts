@@ -5,7 +5,7 @@ import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
-
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-product-page',
   templateUrl: './product-page.component.html',
@@ -38,7 +38,8 @@ export class ProductPageComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private productService: ProductService,
-    private userService: UserService
+    private userService: UserService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -270,14 +271,33 @@ export class ProductPageComponent implements OnInit {
     this.selectedImageIndex = (this.selectedImageIndex + 1) % this.imagePreviews.length;
   }
 
-  downloadCurrentImage(): void {
-    const link = document.createElement('a');
-    link.href = this.currentImage;
-    link.download = `${this.product?.name || 'product'}-image`;
-    link.target = '_blank';
-    link.click();
-  }
+ downloadCurrentImage(): void {
+  // Extract the image ID/filename from currentImage URL or product object
+  const imageId = this.getImageId(this.currentImage); 
+  if (!imageId) return;
 
+  const downloadUrl = `/media/images/${imageId}/download`;
+
+  this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${this.product?.name || 'product'}-image.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => console.error('Failed to download image:', err)
+  });
+}
+
+// Helper to get filename/id from URL
+private getImageId(imageUrl: string): string {
+  if (!imageUrl) return '';
+  return imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+}
   onPriceInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.value && input.value.includes('.')) {
