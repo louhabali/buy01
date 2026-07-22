@@ -18,7 +18,7 @@ export class ProductCardComponent {
   @Output() delete = new EventEmitter<string>();
   
   showDeleteConfirm = false;
-
+  
   constructor(private router: Router) {}
 
   // Simple getter: returns true if product belongs to current user
