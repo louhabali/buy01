@@ -34,7 +34,6 @@ public class MediaService {
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
                 imageUrls.add("https://localhost:8089/uploads/" + fileName);
-
                 System.out.println("Saved image: " + filePath.toAbsolutePath());
             }
 

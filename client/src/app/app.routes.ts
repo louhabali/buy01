@@ -34,7 +34,7 @@ export const routes: Routes = [
  
 
   { path: 'products/add', component: AddProductComponent, canActivate: [authGuard] },
-   { path: 'products/:id', component: ProductPageComponent },
+  { path: 'products/:id', component: ProductPageComponent },
   { path: 'unauthorized', component: ErrorComponent, data: { code: '401' } },
   { path: 'forbidden', component: ErrorComponent, data: { code: '403' } },
   { path: 'server-error', component: ErrorComponent, data: { code: '500' } },
