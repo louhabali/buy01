@@ -58,4 +58,18 @@ public class MediaService {
             throw new RuntimeException("Image size must be less than 2MB");
         }
     }
+    public boolean deleteImage(String fileName) {
+    try {
+        Path filePath = UPLOAD_DIR.resolve(fileName).normalize();
+        
+        // Prevent Directory Traversal attack
+        if (!filePath.startsWith(UPLOAD_DIR)) {
+            throw new SecurityException("Cannot delete files outside upload directory");
+        }
+
+        return Files.deleteIfExists(filePath);
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to delete image: " + e.getMessage(), e);
+    }
+}
 }

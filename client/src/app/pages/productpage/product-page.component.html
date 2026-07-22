@@ -39,7 +39,7 @@
             <div class="w-full h-full rounded-2xl border-2 border-white/20 p-2 bg-white/5 transition-all duration-300 group-hover:border-white flex items-center justify-center overflow-hidden">
               <img 
                 [src]="currentImage" 
-                [alt]="product.name" 
+                [alt]="product.name || 'Product Image'" 
                 (click)="!editing && openFullImageView()"
                 class="w-full h-full object-contain rounded-xl"
                 [class.cursor-zoom-in]="!editing" />
@@ -63,27 +63,42 @@
             </ng-container>
           </div>
 
-          <!-- Thumbnail Gallery Switcher -->
-          <div *ngIf="imagePreviews.length > 1" class="flex gap-2 mt-4 overflow-x-auto max-w-[280px] pb-2">
-            <button 
-              type="button"
+          <!-- Thumbnail Gallery Switcher with Delete Action -->
+          <div *ngIf="imagePreviews.length > 0" class="flex gap-2.5 mt-4 overflow-x-auto max-w-[280px] p-1">
+            <div 
               *ngFor="let img of imagePreviews; let i = index" 
-              (click)="selectImage(i)"
-              [ngClass]="{
-                'border-white': i === selectedImageIndex,
-                'border-white/20': i !== selectedImageIndex
-              }"
-              class="w-12 h-12 rounded-lg border-2 bg-white/10 overflow-hidden flex-shrink-0 cursor-pointer transition-all">
-              <img [src]="img" alt="Product thumbnail" class="w-full h-full object-contain p-0.5" />
-            </button>
+              class="relative group/thumb flex-shrink-0">
+              
+              <!-- Thumbnail Button -->
+              <button 
+                type="button"
+                (click)="selectImage(i)"
+                [ngClass]="{
+                  'border-white ring-2 ring-white/50': i === selectedImageIndex,
+                  'border-white/20 hover:border-white/60': i !== selectedImageIndex
+                }"
+                class="w-12 h-12 rounded-lg border-2 bg-white/10 overflow-hidden cursor-pointer transition-all block">
+                <img [src]="img" alt="Product thumbnail" class="w-full h-full object-contain p-0.5" />
+              </button>
+
+              <!-- Individual Delete Button (Visible in Edit Mode & NOT the fallback placeholder) -->
+              <button 
+                *ngIf="editing && img !== DEFAULT_NO_IMAGE"
+                type="button"
+                (click)="removeImage(i, $event)"
+                title="Remove image"
+                class="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-md transition-all scale-90 hover:scale-100 z-10 cursor-pointer">
+                ✕
+              </button>
+            </div>
           </div>
 
           <!-- Stock Status Badge -->
           <div class="mt-6">
             <span 
               class="px-4 py-1.5 rounded-sm border text-xs font-mono tracking-widest uppercase bg-white/5"
-              [ngClass]="product.quantity > 0 ? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'">
-              {{ product.quantity > 0 ? ('In Stock: ' + product.quantity) : 'Out of Stock' }}
+              [ngClass]="(product.quantity  > 0 )? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'">
+              {{ (product.quantity  > 0) ? ('In Stock: ' + product.quantity) : 'Out of Stock' }}
             </span>
           </div>
 
@@ -157,7 +172,7 @@
 
               <!-- View Mode -->
               <div *ngIf="!editing" class="text-lg font-bold text-[#001830] tracking-wide uppercase break-all">
-                {{ product.price | number:'1.2-2' }} DH
+                {{ product.price }} DH
               </div>
 
               <!-- Edit Mode -->

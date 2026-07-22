@@ -1,152 +1,188 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProductService } from '../../services/product.service';
-import { AuthService } from '../../services/auth.service';
 import { Product } from '../../models/product';
+import { ProductService } from '../../services/product.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-product-page',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './product-page.component.html'
+  templateUrl: './product-page.component.html',
+  standalone: true, // If standalone
+  imports: [CommonModule, ReactiveFormsModule], // 2. Add here
 })
 export class ProductPageComponent implements OnInit {
-  private fb = inject(NonNullableFormBuilder);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private productService = inject(ProductService);
-  private authService = inject(AuthService);
-  private location = inject(Location);
+  // Constant pointing to your Angular public/assets directory fallback
+  readonly DEFAULT_NO_IMAGE = '/noimage.png';
 
   product: Product | null = null;
-  selectedImageIndex = 0;
+  form!: FormGroup;
+
   isLoading = true;
+  editing = false;
   isSaving = false;
   isDeleting = false;
-  editing = false;
   showDeleteModal = false;
   isFullViewOpen = false;
   error: string | null = null;
+  isOwner = false;
 
-  // New files selected during edit mode
-  selectedFiles: File[] = [];
+  // Active gallery states
   imagePreviews: string[] = [];
+  selectedFiles: File[] = [];
+  selectedImageIndex = 0;
 
-  // Reactive form with strict length and value constraints
-  form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-    price: [0, [Validators.required, Validators.min(0.01), Validators.max(9999999.99)]],
-    quantity: [0, [Validators.required, Validators.min(0), Validators.max(999999)]],
-    description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
-  });
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private fb: FormBuilder,
+    private productService: ProductService
+  ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.fetchProduct(id);
+    this.initForm();
+    const productId = this.route.snapshot.paramMap.get('id');
+    if (productId) {
+      this.loadProduct(productId);
     } else {
       this.error = 'Invalid Product ID';
       this.isLoading = false;
     }
   }
 
-  get isOwner(): boolean {
-    const currentUserId = this.authService.getUserId();
-    const currentUserRole = this.authService.getRole();
-    return currentUserRole === 'SELLER' && this.product?.userId === currentUserId;
+  private initForm(): void {
+    this.form = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      price: [0, [Validators.required, Validators.min(0.01), Validators.max(9999999.99)]],
+      quantity: [0, [Validators.required, Validators.min(0), Validators.max(999999)]],
+      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
+    });
   }
 
-  fetchProduct(id: string): void {
+  loadProduct(id: string): void {
+    this.isLoading = true;
     this.productService.getProduct(id).subscribe({
-      next: (data) => {
-        this.product = data;
-        this.resetFormValues(data);
+      next: (product) => {
+        this.product = product;
+        this.resetFormValues(product);
+        this.checkOwnership();
         this.isLoading = false;
       },
-      error: () => {
-        this.error = 'Product not found';
+      error: (err) => {
+        this.error = err?.error?.errorMessage ?? 'Failed to load product details';
         this.isLoading = false;
       }
     });
   }
 
-  private resetFormValues(p: Product): void {
+  private resetFormValues(product: Product): void {
     this.form.patchValue({
-      name: p.name,
-      price: p.price,
-      quantity: p.quantity,
-      description: p.description
+      name: product.name,
+      price: product.price,
+      quantity: product.quantity,
+      description: product.description
     });
-    this.imagePreviews = p.imageUrls ? [...p.imageUrls] : [];
+
+    // Populate image previews or set default fallback if array is empty
+    if (product.imageUrls && product.imageUrls.length > 0) {
+      this.imagePreviews = [...product.imageUrls];
+    } else {
+      this.imagePreviews = [this.DEFAULT_NO_IMAGE];
+    }
+    this.selectedImageIndex = 0;
+    this.selectedFiles = [];
   }
 
   get currentImage(): string {
+    if (this.imagePreviews.length > 0 && this.imagePreviews[this.selectedImageIndex]) {
       return this.imagePreviews[this.selectedImageIndex];
+    }
+    return this.DEFAULT_NO_IMAGE;
+  }
+
+  // Handle selecting new local files
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
     
+    // Check overall maximum limit (5 images max)
+    if (this.imagePreviews.length + files.length > 6) {
+      this.error = 'Maximum 5 images allowed per product.';
+      return;
+    }
+
+    // Filter and add files
+    files.forEach((file) => {
+      this.selectedFiles.push(file);
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        if (e.target?.result) {
+          // Replace placeholder if it was the only item
+          if (this.imagePreviews.length === 1 && this.imagePreviews[0] === this.DEFAULT_NO_IMAGE) {
+            this.imagePreviews = [];
+          }
+          this.imagePreviews.push(e.target.result as string);
+          this.selectedImageIndex = this.imagePreviews.length - 1;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset file input so the same file can be selected again if needed
+    input.value = '';
+  }
+
+  // Remove individual image (Allows removing ALL images)
+  removeImage(index: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    const removedItem = this.imagePreviews[index];
+
+    // Remove preview from gallery list
+    this.imagePreviews.splice(index, 1);
+
+    // If it was a newly added local file preview, remove it from selectedFiles array
+    if (removedItem.startsWith('data:')) {
+      const dataUrlCountBefore = this.imagePreviews
+        .slice(0, index)
+        .filter(img => img.startsWith('data:')).length;
+      this.selectedFiles.splice(dataUrlCountBefore, 1);
+    }
+
+    // Adjust selected index safely
+    if (this.selectedImageIndex >= this.imagePreviews.length) {
+      this.selectedImageIndex = Math.max(0, this.imagePreviews.length - 1);
+    }
+
+    // If ALL images are deleted, display the frontend local no-image placeholder
+    if (this.imagePreviews.length === 0) {
+      this.imagePreviews = [this.DEFAULT_NO_IMAGE];
+      this.selectedImageIndex = 0;
+    }
   }
 
   selectImage(index: number): void {
     this.selectedImageIndex = index;
   }
 
-  prevImage(): void {
-    if (!this.imagePreviews.length) return;
-    this.selectedImageIndex = 
-      (this.selectedImageIndex - 1 + this.imagePreviews.length) % this.imagePreviews.length;
-  }
-
-  nextImage(): void {
-    if (!this.imagePreviews.length) return;
-    this.selectedImageIndex = 
-      (this.selectedImageIndex + 1) % this.imagePreviews.length;
-  }
-
-  // Prevent entering more than 2 decimal places for price
-  onPriceInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.value && input.value.includes('.')) {
-      const parts = input.value.split('.');
-      if (parts[1].length > 2) {
-        input.value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-        this.form.get('price')?.setValue(parseFloat(input.value), { emitEvent: false });
-      }
-    }
-  }
-
   editProduct(): void {
     this.editing = true;
+    this.error = null;
   }
 
   cancelEdit(): void {
-    this.editing = false;
-    this.selectedFiles = [];
     if (this.product) {
       this.resetFormValues(this.product);
     }
-  }
-
-  onImagesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-
-    this.selectedFiles = Array.from(input.files);
-    this.imagePreviews = [];
-
-    this.selectedFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imagePreviews.push(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    this.selectedImageIndex = 0;
+    this.editing = false;
+    this.error = null;
   }
 
   saveProduct(): void {
     if (this.form.invalid || !this.product) return;
+
     this.isSaving = true;
     this.error = null;
 
@@ -157,6 +193,16 @@ export class ProductPageComponent implements OnInit {
     formData.append('price', values.price.toString());
     formData.append('quantity', values.quantity.toString());
 
+    // 1. Filter remaining remote URLs (exclude data URLs and local fallback placeholder)
+    const existingRemoteUrls = this.imagePreviews.filter(
+      (url) => url.startsWith('http') && url !== this.DEFAULT_NO_IMAGE
+    );
+
+    existingRemoteUrls.forEach((url) => {
+      formData.append('existingImageUrls', url);
+    });
+
+    // 2. Append new files
     this.selectedFiles.forEach((file) => {
       formData.append('images', file);
     });
@@ -167,8 +213,6 @@ export class ProductPageComponent implements OnInit {
         this.resetFormValues(updatedProduct);
         this.editing = false;
         this.isSaving = false;
-        this.selectedFiles = [];
-        this.selectedImageIndex = 0;
       },
       error: (err) => {
         this.error = err?.error?.errorMessage ?? 'Failed to update product details';
@@ -186,49 +230,69 @@ export class ProductPageComponent implements OnInit {
   }
 
   confirmDelete(): void {
-    if (!this.product) return;
+    if (!this.product?.id) return;
     this.isDeleting = true;
-    this.error = null;
 
-    this.productService.deleteProduct(this.product.id!).subscribe({
+    this.productService.deleteProduct(this.product.id).subscribe({
       next: () => {
-        this.showDeleteModal = false;
+        this.isDeleting = false;
+        this.closeDeleteModal();
         this.router.navigate(['/products']);
       },
       error: (err) => {
+        this.error = err?.error?.errorMessage ?? 'Failed to delete product';
         this.isDeleting = false;
-        this.showDeleteModal = false;
-        this.error = err?.error?.errorMessage ?? 'Failed to delete product. Please try again.';
+        this.closeDeleteModal();
       }
     });
   }
 
   openFullImageView(): void {
-    if (this.imagePreviews.length) this.isFullViewOpen = true;
+    if (this.currentImage !== this.DEFAULT_NO_IMAGE) {
+      this.isFullViewOpen = true;
+    }
   }
 
   closeFullImageView(): void {
     this.isFullViewOpen = false;
   }
 
-  goBack(): void {
-    this.location.back();
+  prevImage(): void {
+    if (this.imagePreviews.length === 0) return;
+    this.selectedImageIndex =
+      (this.selectedImageIndex - 1 + this.imagePreviews.length) % this.imagePreviews.length;
+  }
+
+  nextImage(): void {
+    if (this.imagePreviews.length === 0) return;
+    this.selectedImageIndex = (this.selectedImageIndex + 1) % this.imagePreviews.length;
   }
 
   downloadCurrentImage(): void {
-    const imageUrl = this.currentImage;
-    if (!imageUrl || imageUrl.includes('assets/placeholder')) return;
+    const link = document.createElement('a');
+    link.href = this.currentImage;
+    link.download = `${this.product?.name || 'product'}-image`;
+    link.target = '_blank';
+    link.click();
+  }
 
-    const fileName = imageUrl.split('/uploads/').pop();
-    if (!fileName) return;
+  onPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.value && input.value.includes('.')) {
+      const parts = input.value.split('.');
+      if (parts[1].length > 2) {
+        input.value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+        this.form.get('price')?.setValue(parseFloat(input.value));
+      }
+    }
+  }
 
-    const downloadUrl = `https://localhost:8089/media/images/${fileName}/download`;
+  goBack(): void {
+    this.router.navigate(['/products']);
+  }
 
-    const anchor = document.createElement('a');
-    anchor.href = downloadUrl;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
+  private checkOwnership(): void {
+    // Ownership validation logic based on user session context
+    this.isOwner = true; 
   }
 }

@@ -73,4 +73,12 @@ public class MediaController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
+    @DeleteMapping("/images/{id}")
+public ResponseEntity<Void> deleteImage(@PathVariable String id) throws IOException {
+    boolean deleted = mediaService.deleteImage(id);
+    if (!deleted) {
+        return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.noContent().build();
+}
 }

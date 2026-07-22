@@ -26,6 +26,7 @@ public class ProductService {
             "image/jpeg", "image/png", "image/webp", "image/gif");
     private static final long MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
     private static final int MAX_IMAGES_COUNT = 5;
+    
 
     public List<Product> getAllProducts() {
         return repository.findAll();
@@ -52,19 +53,12 @@ public class ProductService {
         }
 
         validateProductDetails(name, description, price, quantity);
-        validateImages(images);
 
         List<String> imageUrls = new ArrayList<>();
         if (hasValidImages(images)) {
             validateImages(images);
             imageUrls = mediaClient.uploadImages(images);
-        } else {
-            // Default placeholder for products created without images
-            imageUrls.add("https://dummyimage.com/800x800/001830/ffffff.png&text=NO+IMAGE");
-            // Or your media server URL:
-            // "https://localhost:8089/media/images/default-product.png"
         }
-
         Product product = Product.builder()
                 .name(name.trim())
                 .description(description.trim())
@@ -83,7 +77,8 @@ public class ProductService {
             String description,
             Double price,
             Integer quantity,
-            MultipartFile[] images,
+            List<String> existingImageUrls,
+            MultipartFile[] newImages,
             String userId,
             String userRole) {
 
@@ -97,11 +92,26 @@ public class ProductService {
         product.setPrice(price);
         product.setQuantity(quantity);
 
-        if (hasValidImages(images)) {
-            validateImages(images);
-            List<String> imageUrls = mediaClient.uploadImages(images);
-            product.setImageUrls(imageUrls);
+        // 1. Start with remaining existing URLs passed from frontend
+        List<String> finalImageUrls = new ArrayList<>();
+        if (existingImageUrls != null) {
+            finalImageUrls.addAll(existingImageUrls);
         }
+
+        // 2. Upload and append any newly added images
+        if (hasValidImages(newImages)) {
+            validateImages(newImages);
+            List<String> newlyUploadedUrls = mediaClient.uploadImages(newImages);
+            finalImageUrls.addAll(newlyUploadedUrls);
+        }
+
+        // 3. Enforce maximum total allowed images limit across both existing and new
+        if (finalImageUrls.size() > MAX_IMAGES_COUNT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Total images cannot exceed " + MAX_IMAGES_COUNT + " per product.");
+        }
+
+        product.setImageUrls(finalImageUrls);
 
         return repository.save(product);
     }
@@ -136,7 +146,6 @@ public class ProductService {
     }
 
     private void validateProductDetails(String name, String description, Double price, Integer quantity) {
-        // Name Validation
         if (name == null || name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product name is required.");
         }
@@ -146,7 +155,6 @@ public class ProductService {
                     "Product name must be between 3 and 100 characters.");
         }
 
-        // Description Validation
         if (description == null || description.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Description is required.");
         }
@@ -156,7 +164,6 @@ public class ProductService {
                     "Description must be between 10 and 1000 characters.");
         }
 
-        // Price Validation
         if (price == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price is required.");
         }
@@ -166,12 +173,10 @@ public class ProductService {
         if (price > 9999999.99) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price cannot exceed 9,999,999.99 DH.");
         }
-        // Precision Check (Max 2 Decimal Places)
         if (BigDecimal.valueOf(price).scale() > 2) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price cannot have more than 2 decimal places.");
         }
 
-        // Quantity Validation
         if (quantity == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity is required.");
         }
@@ -198,7 +203,6 @@ public class ProductService {
                 continue;
             }
 
-            // Check Content Type
             String contentType = file.getContentType();
             if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -206,7 +210,6 @@ public class ProductService {
                                 + "'. Only JPG, PNG, WEBP, and GIF are allowed.");
             }
 
-            // Check Size
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "File '" + file.getOriginalFilename() + "' exceeds the 2MB size limit.");
