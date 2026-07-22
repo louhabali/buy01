@@ -85,7 +85,7 @@ public class ProductService {
             String userRole) {
 
         Product product = getProduct(id);
-        verifyOwnership(product, userId, userRole);
+        verifyOwnership(product, userId);
 
         validateProductDetails(name, description, price, quantity);
 
@@ -120,7 +120,7 @@ public class ProductService {
 
     public void deleteProduct(String id, String userId, String userRole) {
         Product product = getProduct(id);
-        verifyOwnership(product, userId, userRole);
+        verifyOwnership(product, userId);
         repository.delete(product);
     }
 
@@ -130,13 +130,13 @@ public class ProductService {
         }
     }
 
-    private void verifyOwnership(Product product, String userId, String userRole) {
+    private void verifyOwnership(Product product, String userId) {
         validateUserData(userId);
 
-        boolean isSeller = "SELLER".equalsIgnoreCase(userRole);
+        
         boolean isOwner = product.getUserId() != null && product.getUserId().equals(userId);
 
-        if (!isSeller || !isOwner) {
+        if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: Unauthorized action");
         }
     }

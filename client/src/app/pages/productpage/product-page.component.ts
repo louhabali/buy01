@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-product-page',
@@ -36,7 +37,8 @@ export class ProductPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private productService: ProductService
+    private productService: ProductService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -291,8 +293,15 @@ export class ProductPageComponent implements OnInit {
     this.router.navigate(['/products']);
   }
 
-  private checkOwnership(): void {
-    // Ownership validation logic based on user session context
-    this.isOwner = true; 
-  }
+ private checkOwnership(): void {
+  this.userService.user$.subscribe((user) => {
+    if (!user || !this.product) {
+      this.isOwner = false;
+      return;
+    }
+
+    const ownerId = this.product.userId;
+    this.isOwner = !!(user.id && ownerId && user.id === ownerId);
+  });
+}
 }
