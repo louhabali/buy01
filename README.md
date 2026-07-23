@@ -17,6 +17,8 @@
                                  |
                           Nginx Reverse Proxy
                                  |
+                          HTTPS (SSL)
+                                 |
                         Spring Cloud Gateway
                                  |
         --------------------------------------------------
