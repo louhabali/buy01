@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class MediaController {
 
     private final MediaService mediaService;
+    private static final Path UPLOAD_DIR = Paths.get("/app/uploads").toAbsolutePath().normalize();
 
     @PostMapping(
             value = "/images",
@@ -40,29 +41,34 @@ public class MediaController {
             @PathVariable String id
     ) throws IOException {
 
-        Path path = Paths.get("uploads").resolve(id).toAbsolutePath().normalize();
+        Path path = UPLOAD_DIR.resolve(id).normalize();
 
-        if (!Files.exists(path)) {
+        if (!Files.exists(path) || !path.startsWith(UPLOAD_DIR)) {
             return ResponseEntity.notFound().build();
         }
 
         Resource resource = new FileSystemResource(path);
 
+        // Dynamic MIME type detection
+        String contentType = Files.probeContentType(path);
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS))
-                .contentType(MediaType.IMAGE_JPEG)
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
     }
 
-    // download 
     @GetMapping("/images/{id}/download")
     public ResponseEntity<Resource> downloadImage(
             @PathVariable String id
     ) throws IOException {
 
-        Path path = Paths.get("uploads").resolve(id).toAbsolutePath().normalize();
+        Path path = UPLOAD_DIR.resolve(id).normalize();
 
-        if (!Files.exists(path)) {
+        if (!Files.exists(path) || !path.startsWith(UPLOAD_DIR)) {
             return ResponseEntity.notFound().build();
         }
 
@@ -73,12 +79,13 @@ public class MediaController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
+
     @DeleteMapping("/images/{id}")
-public ResponseEntity<Void> deleteImage(@PathVariable String id) throws IOException {
-    boolean deleted = mediaService.deleteImage(id);
-    if (!deleted) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteImage(@PathVariable String id) {
+        boolean deleted = mediaService.deleteImage(id);
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
-    return ResponseEntity.noContent().build();
-}
 }

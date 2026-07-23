@@ -12,6 +12,6 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   console.warn('Access Denied: Guard routing user to unauthorized page.');
   authService.removeToken(); 
-  router.navigate(['/unauthorized']);
+  router.navigate(['/login']);
   return false;
 };

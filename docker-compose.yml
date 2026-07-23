@@ -1,113 +1,109 @@
-  version: "3.9"
+version: "3.9"
 
-  services:
+services:
 
-    gateway:
-      build: ./gateway_service
-      container_name: gateway-service
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: angular-client
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - gateway
+    restart: unless-stopped
 
-      ports:
-        - "8089:8089"
+  gateway:
+    build: ./gateway_service
+    container_name: gateway-service
+    ports:
+      - "8089:8089"
+    depends_on:
+      - user-service
+      - product-service
+      - media-service
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
 
-      depends_on:
-        - user-service
-        - product-service
-        - media-service
+  user-service:
+    build: ./user_service
+    container_name: user-service
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+    expose:
+      - "8081"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/buy01
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
-      environment:
-        SPRING_DATA_REDIS_HOST: redis
+  product-service:
+    build: ./product_service
+    container_name: product-service
+    depends_on:
+      - mongodb
+      - redis
+      - kafka
+    expose:
+      - "8082"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/product_db
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
-    user-service:
-      build: ./user_service
-      container_name: user-service
+  media-service:
+    build: ./media_service
+    container_name: media-service
+    depends_on:
+      - mongodb
+    expose:
+      - "8083"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/media_db
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
 
-      depends_on:
-        - mongodb
-        - redis
-        - kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
-      expose:
-        - "8081"
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
-      environment:
-        SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/buy01
-        SPRING_DATA_REDIS_HOST: redis
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
 
-    product-service:
-      build: ./product_service
-      container_name: product-service
-
-      depends_on:
-        - mongodb
-        - redis
-        - kafka
-
-      expose:
-        - "8082"
-
-      environment:
-        SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/product_db
-        SPRING_DATA_REDIS_HOST: redis
-
-    media-service:
-      build: ./media_service
-      container_name: media-service
-
-      depends_on:
-        - mongodb
-
-      expose:
-        - "8083"
-
-      environment:
-        SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/media_db
-      volumes:
-        - ./uploads:/app/uploads
-      restart: unless-stopped
-
-    kafka:
-      image: confluentinc/cp-kafka:7.6.1
-      container_name: kafka
-
-      ports:
-        - "9092:9092"
-
-      environment:
-        CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-        KAFKA_NODE_ID: 1
-        KAFKA_PROCESS_ROLES: broker,controller
-        KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-        KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-        KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-        KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-    mongodb:
-      image: mongo:7
-      container_name: mongodb
-
-      ports:
-        - "27017:27017"
-
-      volumes:
-        - mongo-data:/data/db
-
-    redis:
-      image: redis:7
-      container_name: redis
-
-      ports:
-        - "6379:6379"
-
-      volumes:
-        - redis-data:/data
-
-  volumes:
-    mongo-data:
-    redis-data:
+volumes:
+  mongo-data:
+  redis-data:   

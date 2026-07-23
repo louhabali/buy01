@@ -10,13 +10,10 @@ import java.util.List;
 @Service
 public class MediaService {
 
-   
-    private static final Path UPLOAD_DIR = Paths.get("uploads").toAbsolutePath().normalize();
-
+    private static final Path UPLOAD_DIR = Paths.get("/app/uploads").toAbsolutePath().normalize();
     private static final long MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 
     public List<String> upload(MultipartFile[] images) {
-
         List<String> imageUrls = new ArrayList<>();
 
         try {
@@ -30,11 +27,10 @@ public class MediaService {
                 String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
                 Path filePath = UPLOAD_DIR.resolve(fileName);
 
-                // Transfer file bytes safely
                 Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                imageUrls.add("https://localhost:8089/uploads/" + fileName);
-                System.out.println("Saved image: " + filePath.toAbsolutePath());
+                // Returns relative path — browser automatically appends current origin
+                imageUrls.add("/uploads/" + fileName);
             }
 
             return imageUrls;
@@ -57,18 +53,19 @@ public class MediaService {
             throw new RuntimeException("Image size must be less than 2MB");
         }
     }
-    public boolean deleteImage(String fileName) {
-    try {
-        Path filePath = UPLOAD_DIR.resolve(fileName).normalize();
-        
-        // Prevent Directory Traversal attack
-        if (!filePath.startsWith(UPLOAD_DIR)) {
-            throw new SecurityException("Cannot delete files outside upload directory");
-        }
 
-        return Files.deleteIfExists(filePath);
-    } catch (Exception e) {
-        throw new RuntimeException("Failed to delete image: " + e.getMessage(), e);
+    public boolean deleteImage(String fileName) {
+        try {
+            Path filePath = UPLOAD_DIR.resolve(fileName).normalize();
+
+            // Directory Traversal Prevention
+            if (!filePath.startsWith(UPLOAD_DIR)) {
+                throw new SecurityException("Cannot delete files outside upload directory");
+            }
+
+            return Files.deleteIfExists(filePath);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete image: " + e.getMessage(), e);
+        }
     }
-}
 }
