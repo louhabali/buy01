@@ -41,22 +41,22 @@ spring:
         - id: user-service
           uri: ${USER_SERVICE_URL}
           predicates:
-            - Path=/auth/**
+            - Path=/api/auth/**
 
         - id: product-service
           uri: ${PRODUCT_SERVICE_URL}
           predicates:
-            - Path=/products/**
+            - Path=/api/products/**
 
         - id: media-service
           uri: ${MEDIA_SERVICE_URL}
           predicates:
-            - Path=/media/**
+            - Path=/api/media/**
 
         - id: media_uploads
           uri: ${MEDIA_SERVICE_URL}
           predicates:
-            - Path=/uploads/**
+            - Path=/api/uploads/**
 
 jwt:
   secret: ${JWT_SECRET}

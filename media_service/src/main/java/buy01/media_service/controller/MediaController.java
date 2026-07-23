@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
-@RequestMapping("/media")
+@RequestMapping("api/media")
 @RequiredArgsConstructor
 public class MediaController {
 

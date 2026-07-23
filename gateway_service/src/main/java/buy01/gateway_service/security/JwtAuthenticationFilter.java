@@ -38,10 +38,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         // Public endpoints
         if (path.startsWith("/auth/login") ||
                 path.startsWith("/auth/register") ||
-                (method == HttpMethod.GET && path.startsWith("/products")) ||
+                (method == HttpMethod.GET && path.startsWith("/api/products")) ||
                 (method == HttpMethod.GET && path.startsWith("/uploads/")) ||
-                (HttpMethod.GET.equals(method) && path.startsWith("/media/")) ||
-                (HttpMethod.POST.equals(method) && path.equals("/media/avatars/public"))) {
+                (HttpMethod.GET.equals(method) && path.startsWith("/api/media/")) ||
+                (HttpMethod.POST.equals(method) && path.equals("/api/media/avatars/public"))) {
             return chain.filter(exchange);
         }
 

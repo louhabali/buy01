@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.mongodb.lang.NonNull;;
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("api/auth")
 @RequiredArgsConstructor
 public class UserController {
 
