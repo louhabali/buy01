@@ -184,46 +184,44 @@ export class ProductPageComponent implements OnInit {
   }
 
   saveProduct(): void {
-    if (this.form.invalid || !this.product) return;
+  if (this.form.invalid || !this.product) return;
 
-    this.isSaving = true;
-    this.error = null;
+  this.isSaving = true;
+  this.error = null;
 
-    const values = this.form.getRawValue();
-    const formData = new FormData();
-    formData.append('name', values.name.trim());
-    formData.append('description', values.description.trim());
-    formData.append('price', values.price.toString());
-    formData.append('quantity', values.quantity.toString());
+  const values = this.form.getRawValue();
+  const formData = new FormData();
+  formData.append('name', values.name.trim());
+  formData.append('description', values.description.trim());
+  formData.append('price', values.price.toString());
+  formData.append('quantity', values.quantity.toString());
 
-    // 1. Filter remaining remote URLs (exclude data URLs and local fallback placeholder)
-    const existingRemoteUrls = this.imagePreviews.filter(
-      (url) => url.startsWith('http') && url !== this.DEFAULT_NO_IMAGE
-    );
+  const existingRemoteUrls = this.imagePreviews.filter(
+    (url) => !url.startsWith('data:') && url !== this.DEFAULT_NO_IMAGE
+  );
 
-    existingRemoteUrls.forEach((url) => {
-      formData.append('existingImageUrls', url);
-    });
+  existingRemoteUrls.forEach((url) => {
+    formData.append('existingImageUrls', url);
+  });
 
-    // 2. Append new files
-    this.selectedFiles.forEach((file) => {
-      formData.append('images', file);
-    });
+  // 2. Append newly uploaded local files
+  this.selectedFiles.forEach((file) => {
+    formData.append('images', file);
+  });
 
-    this.productService.updateProduct(this.product.id!, formData).subscribe({
-      next: (updatedProduct) => {
-        this.product = updatedProduct;
-        this.resetFormValues(updatedProduct);
-        this.editing = false;
-        this.isSaving = false;
-      },
-      error: (err) => {
-        this.error = err?.error?.errorMessage ?? 'Failed to update product details';
-        this.isSaving = false;
-      }
-    });
-  }
-
+  this.productService.updateProduct(this.product.id!, formData).subscribe({
+    next: (updatedProduct) => {
+      this.product = updatedProduct;
+      this.resetFormValues(updatedProduct);
+      this.editing = false;
+      this.isSaving = false;
+    },
+    error: (err) => {
+      this.error = err?.error?.errorMessage ?? 'Failed to update product details';
+      this.isSaving = false;
+    }
+  });
+}
   openDeleteModal(): void {
     this.showDeleteModal = true;
   }

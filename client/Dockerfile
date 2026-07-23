@@ -14,7 +14,7 @@ RUN npm run build -- --configuration production
 FROM nginx:alpine
 
 # Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy SSL certificates into Nginx directory
 COPY certs/ /etc/nginx/certs/

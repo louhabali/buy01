@@ -30,7 +30,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       if (user?.avatarUrl) {
         this.avatarUrl = user.avatarUrl.startsWith('http') 
           ? user.avatarUrl 
-          : `http://localhost:8089${user.avatarUrl}`;
+          : `https://localhost:8443${user.avatarUrl}`;
       } else {
         this.avatarUrl = null;
       }

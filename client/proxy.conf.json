@@ -9,8 +9,7 @@
     "target": "https://localhost:8089",
     "secure": false,
     "changeOrigin": true,
-    "rejectUnauthorized": false,
-    "bypass": "function (req) { if (req.headers.accept && req.headers.accept.indexOf('html') !== -1) { return '/index.html'; } }"
+    "rejectUnauthorized": false
   },
   "/media": {
     "target": "https://localhost:8089",

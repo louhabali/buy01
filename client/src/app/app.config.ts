@@ -1,5 +1,5 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withHashLocation } from '@angular/router';
 import { routes } from './app.routes';
 import {
   provideHttpClient,
@@ -13,7 +13,7 @@ import { errorInterceptor } from '../interceptors/error.interceptor';
 export const appConfig: ApplicationConfig = {
 
   providers: [
-     provideRouter(routes),
+     provideRouter(routes, withHashLocation()),
     provideHttpClient(
       withInterceptors([
         authInterceptor , errorInterceptor
