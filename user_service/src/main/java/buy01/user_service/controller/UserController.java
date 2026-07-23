@@ -36,7 +36,7 @@ public class UserController {
     @GetMapping("/profile")
     public ProfileResponse profile(
             @RequestHeader("X-User-Id") String userId) {
-           
+           System.out.println("Fetching profile for userId: " + userId);
         return us.getProfile(userId);
     }
     @PutMapping("/profile")
