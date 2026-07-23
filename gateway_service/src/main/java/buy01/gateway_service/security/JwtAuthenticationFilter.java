@@ -35,13 +35,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         if (HttpMethod.OPTIONS.equals(method)) {
             return chain.filter(exchange);
         }
+        System.out.println("Request Path: " + path + ", Method: " + method);
         // Public endpoints
-        if (path.startsWith("api/auth/login") ||
-                path.startsWith("api/auth/register") ||
-                (method == HttpMethod.GET && path.startsWith("api/products")) ||
-                (method == HttpMethod.GET && path.startsWith("api/uploads/")) ||
-                (HttpMethod.GET.equals(method) && path.startsWith("api/media/")) ||
-                (HttpMethod.POST.equals(method) && path.equals("api/media/avatars/public"))) {
+        if (path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/register") ||
+                (method == HttpMethod.GET && path.startsWith("/api/products")) ||
+                (method == HttpMethod.GET && path.startsWith("/api/uploads/")) ||
+                (HttpMethod.GET.equals(method) && path.startsWith("/api/media/")) ||
+                (HttpMethod.POST.equals(method) && path.equals("/api/media/avatars/public"))) {
             return chain.filter(exchange);
         }
 

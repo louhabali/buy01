@@ -14,7 +14,7 @@ public class MediaService {
 
     private static final Path UPLOAD_DIR = Paths.get("/app/uploads").toAbsolutePath().normalize();
     private static final long MAX_SIZE = 2 * 1024 * 1024; // 2 MB
-    private static final List<String> ALLOWED_MIME_TYPES = List.of("image/jpeg", "image/png", "image/webp","image/avif");
+    private static final List<String> ALLOWED_MIME_TYPES = List.of("image/jpeg", "image/png", "image/webp","image/gif","image/x-avif","image/avif");
     // for single avatar upload
     public String uploadSingleAvatar(MultipartFile avatar) {
         validateImage(avatar);
