@@ -46,7 +46,7 @@ export class AuthService {
   loggedIn$ = this.loggedInSubject.asObservable();
 
   login(data: LoginRequest): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/auth/login`, data).pipe(
+    return this.http.post<any>(`${environment.apiUrl}/api/auth/login`, data).pipe(
       tap(res => {
         this.saveToken(res.token);
       })
@@ -72,7 +72,7 @@ export class AuthService {
   }
 
   register(data: RegisterRequest): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/auth/register`, data);
+    return this.http.post(`${environment.apiUrl}/api/auth/register`, data);
   }
 
   logout(): void {

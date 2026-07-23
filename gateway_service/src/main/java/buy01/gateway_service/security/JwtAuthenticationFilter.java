@@ -36,12 +36,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
         // Public endpoints
-        if (path.startsWith("/auth/login") ||
-                path.startsWith("/auth/register") ||
-                (method == HttpMethod.GET && path.startsWith("/api/products")) ||
-                (method == HttpMethod.GET && path.startsWith("/uploads/")) ||
-                (HttpMethod.GET.equals(method) && path.startsWith("/api/media/")) ||
-                (HttpMethod.POST.equals(method) && path.equals("/api/media/avatars/public"))) {
+        if (path.startsWith("api/auth/login") ||
+                path.startsWith("api/auth/register") ||
+                (method == HttpMethod.GET && path.startsWith("api/products")) ||
+                (method == HttpMethod.GET && path.startsWith("api/uploads/")) ||
+                (HttpMethod.GET.equals(method) && path.startsWith("api/media/")) ||
+                (HttpMethod.POST.equals(method) && path.equals("api/media/avatars/public"))) {
             return chain.filter(exchange);
         }
 
