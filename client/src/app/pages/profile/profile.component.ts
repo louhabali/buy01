@@ -22,7 +22,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private userSub!: Subscription;
 
-  // Form setup explicitly matches ProfileResponse keys
   form = this.fb.group({
     username: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
@@ -38,15 +37,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   avatarPreview = '';
 
   ngOnInit(): void {
-    // 1. Subscribe to the in-memory UserService stream
     this.userSub = this.us.user$.subscribe((data) => {
       if (data) {
         this.user = data;
         
-        // Patch form only when not actively editing to preserve user inputs
         if (!this.editing) {
           this.form.patchValue({
-            username: data.name || '',
+            username: data.name || (data as any).username || '',
             email: data.email || '',
             avatarUrl: data.avatarUrl || '',
             role: data.role || 'CLIENT'
@@ -56,20 +53,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
 
-    // 2. Fetch fresh backend profile (automatically pushes to UserService)
     this.loadProfile();
   }
 
   loadProfile(): void {
     this.loading = true;
     this.authService.getProfile().subscribe({
-      next: (data: ProfileResponse) => {
-        // AuthService.getProfile() automatically invokes UserService.setUser(data)
+      next: () => {
         this.loading = false;
       },
       error: (err) => {
         console.error('Cannot load profile:', err);
-        this.error = "Cannot load profile";
+        this.error = 'Cannot load profile';
         this.loading = false;
       }
     });
@@ -96,10 +91,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.selectedAvatar = null;
     this.error = '';
     
-    // Re-patch form values from current memory state
     if (this.user) {
       this.form.patchValue({
-        username: this.user.name || '',
+        username: this.user.name || (this.user as any).username || '',
         email: this.user.email || '',
         avatarUrl: this.user.avatarUrl || '',
         role: this.user.role || 'CLIENT'
@@ -114,6 +108,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.error = '';
 
     if (this.selectedAvatar) {
+      // 1. If a new file was picked, upload it first
       this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
         next: (urls) => {
           this.updateBackend(urls[0]);
@@ -124,7 +119,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.updateBackend(this.form.getRawValue().avatarUrl);
+      // 2. If no new file was picked, fallback strictly to current avatar URL
+      const currentAvatar = this.form.getRawValue().avatarUrl || this.user?.avatarUrl || '';
+      this.updateBackend(currentAvatar);
     }
   }
 
@@ -137,14 +134,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       role: values.role 
     }).subscribe({
       next: (updatedUser: ProfileResponse) => {
-        // Normalize fields coming from backend
         const normalizedUser: ProfileResponse = {
           ...updatedUser,
           name: updatedUser.name || (updatedUser as any).username || values.username,
           avatarUrl: updatedUser.avatarUrl || (updatedUser as any).avatar || avatarUrl
         };
 
-        // Broadcast to memory store (Navbar & Catalog will instantly update)
+        // Broadcast updated state to all subscribers (Navbar, Profile, etc.)
         this.us.setUser(normalizedUser);
 
         this.editing = false;
