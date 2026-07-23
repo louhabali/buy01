@@ -27,22 +27,21 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private final UserBlacklistService userBlacklistService;
     private final UserServiceClient userServiceClient;
 
-    
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
         if (HttpMethod.OPTIONS.equals(method)) {
-        return chain.filter(exchange);
+            return chain.filter(exchange);
         }
         // Public endpoints
         if (path.startsWith("/auth/login") ||
                 path.startsWith("/auth/register") ||
                 (method == HttpMethod.GET && path.startsWith("/products")) ||
                 (method == HttpMethod.GET && path.startsWith("/uploads/")) ||
-               (HttpMethod.GET.equals(method) && path.startsWith("/media/"))||
-            (HttpMethod.POST.equals(method) && path.startsWith("/media/images"))) {
+                (HttpMethod.GET.equals(method) && path.startsWith("/media/")) ||
+                (HttpMethod.POST.equals(method) && path.equals("/media/avatars/public"))) {
             return chain.filter(exchange);
         }
 
