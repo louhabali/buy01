@@ -20,7 +20,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY certs/ /etc/nginx/certs/
 
 # Copy built Angular static assets from Stage 1
-COPY --from=build /app/dist/buy01/browser /usr/share/nginx/html
+COPY --from=build /app/dist/buy01 /usr/share/nginx/html
 
 # Expose HTTP and HTTPS ports
 EXPOSE 8080 8443
