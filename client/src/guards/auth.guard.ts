@@ -9,7 +9,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const userService = inject(UserService);
   const router = inject(Router);
-
+  
   // 1. Unauthenticated check
   if (!authService.isLoggedIn()) {
     console.warn('Access Denied: Unauthenticated user routed to login.');
@@ -28,7 +28,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     const isSeller = role === 'SELLER';
     if (!isSeller) {
       console.warn('Access Denied: User lacks SELLER permissions.');
-      router.navigate(['/403']);
+      router.navigate(['/forbidden']);
     }
     return isSeller;
   };
@@ -42,7 +42,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   return authService.getProfile().pipe(
     map((profile) => checkSellerRole(profile?.role)),
     catchError(() => {
-      router.navigate(['/403']);
+      router.navigate(['/forbidden']);
       return of(false);
     })
   );

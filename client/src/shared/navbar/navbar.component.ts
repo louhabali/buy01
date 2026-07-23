@@ -22,34 +22,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
 
   ngOnInit(): void {
-    // Subscribe to memory stream
     this.userSub = this.userService.user$.subscribe((user) => {
-      if (user?.name) {
-        this.username = user.name;
-      }
-      if (user?.avatarUrl) {
-        this.avatarUrl = user.avatarUrl.startsWith('http') 
-          ? user.avatarUrl 
-          : `https://localhost:8443${user.avatarUrl}`;
-      } else {
-        this.avatarUrl = null;
+      if (user) {
+        this.username = user.name || 'Curator';
+        this.avatarUrl = user.avatarUrl || null;
       }
     });
 
-    // Fetch fresh profile from server on boot
     this.fetchUserProfile();
   }
 
   fetchUserProfile(): void {
     this.isLoading = true;
     this.authService.getProfile().subscribe({
-      next: () => {
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.warn('Could not fetch backend profile:', err);
-        this.isLoading = false;
-      }
+      next: () => (this.isLoading = false),
+      error: () => (this.isLoading = false)
     });
   }
 

@@ -6,27 +6,37 @@ import { ProfileResponse } from './auth.service';
   providedIn: 'root'
 })
 export class UserService {
-  // Purely in-memory state — no localStorage storage
   private userSubject = new BehaviorSubject<ProfileResponse | null>(null);
   public user$: Observable<ProfileResponse | null> = this.userSubject.asObservable();
 
-  constructor() {}
-
-  // Synchronous snapshot getter
   public get currentUser(): ProfileResponse | null {
     return this.userSubject.value;
   }
 
-  // Updates in-memory state and notifies all subscribers
   public setUser(userData: Partial<ProfileResponse>): void {
-    const current = this.userSubject.value || {} as ProfileResponse;
-    const updated = { ...current, ...userData } as ProfileResponse;
+    const current = this.userSubject.value || ({} as ProfileResponse);
+    
+    // Normalize properties
+    const rawAvatar = userData.avatarUrl || (userData as any)?.avatar || current.avatarUrl || '';
+    const formattedAvatar = this.formatAvatarUrl(rawAvatar);
+
+    const updated: ProfileResponse = {
+      ...current,
+      ...userData,
+      name: userData.name || (userData as any)?.username || current.name || 'Curator',
+      avatarUrl: formattedAvatar
+    };
 
     this.userSubject.next(updated);
   }
 
-  // Clears in-memory state on logout
   public clearUser(): void {
     this.userSubject.next(null);
+  }
+
+  private formatAvatarUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    return `https://localhost:8443${url.startsWith('/') ? '' : '/'}${url}`;
   }
 }

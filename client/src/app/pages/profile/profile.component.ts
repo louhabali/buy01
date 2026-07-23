@@ -103,27 +103,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   saveProfile(): void {
-    if (this.form.invalid) return;
-    this.loading = true;
-    this.error = '';
+  if (this.form.invalid) return;
+  this.loading = true;
+  this.error = '';
 
-    if (this.selectedAvatar) {
-      // 1. If a new file was picked, upload it first
-      this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
-        next: (urls) => {
-          this.updateBackend(urls[0]);
-        },
-        error: () => {
-          this.loading = false;
-          this.error = 'Failed to upload avatar.';
-        }
-      });
-    } else {
-      // 2. If no new file was picked, fallback strictly to current avatar URL
-      const currentAvatar = this.form.getRawValue().avatarUrl || this.user?.avatarUrl || '';
-      this.updateBackend(currentAvatar);
-    }
+  if (this.selectedAvatar) {
+    this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
+      next: (urls) => this.updateBackend(urls[0]),
+      error: () => {
+        this.loading = false;
+        this.error = 'Failed to upload avatar.';
+      }
+    });
+  } else {
+    // Pass the existing user's avatar path intact
+    const currentAvatar = this.user?.avatarUrl || '';
+    this.updateBackend(currentAvatar);
   }
+}
 
   private updateBackend(avatarUrl: string): void {
     const values = this.form.getRawValue();
