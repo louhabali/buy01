@@ -15,7 +15,7 @@ import java.util.List;
 public interface MediaClient {
 
     @PostMapping(
-        value="/media/images",
+        value="api/media/images",
         consumes=MediaType.MULTIPART_FORM_DATA_VALUE
 )
 List<String> uploadImages(

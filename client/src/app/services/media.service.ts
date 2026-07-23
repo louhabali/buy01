@@ -12,7 +12,15 @@ import { environment } from '../../environments/environment';
 export class MediaService {
 
   private http = inject(HttpClient);
+  uploadPublicAvatar(file: File): Observable<{ avatarUrl: string }> {
+    const formData = new FormData();
+    formData.append('avatar', file);
 
+    return this.http.post<{ avatarUrl: string }>(
+      `${environment.apiUrl}/api/media/avatars/public`,
+      formData
+    );
+  }
   uploadImages(files: File[]) {
 
     const formData = new FormData();
@@ -24,7 +32,7 @@ export class MediaService {
     });
 
     return this.http.post<string[]>(
-      `${environment.apiUrl}/media/images`,
+      `${environment.apiUrl}/api/media/images`,
       formData
     );
 
@@ -32,13 +40,13 @@ export class MediaService {
   deleteImage(fileName: string): Observable<void> {
 
     return this.http.delete<void>(
-      `${environment.apiUrl}/media/images/${fileName}`
+      `${environment.apiUrl}/api/media/images/${fileName}`
     );
 
   }
   getImageUrl(fileName: string): string {
 
-    return `${environment.apiUrl}/media/images/${fileName}`;
+    return `${environment.apiUrl}/api/media/images/${fileName}`;
 
   }
 

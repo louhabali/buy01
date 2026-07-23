@@ -2,8 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { RegisterRequest } from '../../services/auth.service';
+import { AuthService, RegisterRequest } from '../../services/auth.service';
 import { MediaService } from '../../services/media.service';
 
 export type UserRole = 'SELLER' | 'CLIENT';
@@ -72,14 +71,15 @@ export class RegisterComponent implements OnInit {
     this.error = '';
 
     if (this.selectedAvatar) {
-      this.mediaService.uploadImages([this.selectedAvatar]).subscribe({
-        next: (urls) => {
-          this.registerUser(urls[0]);
+      // Call dedicated public avatar endpoint
+      this.mediaService.uploadPublicAvatar(this.selectedAvatar).subscribe({
+        next: (res) => {
+          this.registerUser(res.avatarUrl);
         },
         error: (er) => {
           console.error('Avatar upload failed:', er);
           this.loading = false;
-          this.error = 'Failed to upload avatar.';
+          this.error = er?.error?.error ?? 'Failed to upload avatar.';
         }
       });
     } else {

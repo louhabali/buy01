@@ -274,7 +274,7 @@ export class ProductPageComponent implements OnInit {
   const imageId = this.getImageId(this.currentImage); 
   if (!imageId) return;
 
-  const downloadUrl = `/media/images/${imageId}/download`;
+  const downloadUrl = `api/media/images/${imageId}/download`;
 
   this.http.get(downloadUrl, { responseType: 'blob' }).subscribe({
     next: (blob: Blob) => {

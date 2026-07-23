@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   getProfile(): Observable<ProfileResponse> {
-    return this.http.get<ProfileResponse>(`${environment.apiUrl}/auth/profile`).pipe(
+    return this.http.get<ProfileResponse>(`${environment.apiUrl}/api/auth/profile`).pipe(
       tap(profile => {
         // Hydrate in-memory state directly from secure API response
         this.userService.setUser(profile);
@@ -63,7 +63,7 @@ export class AuthService {
   }
 
   updateProfile(profile: { username: string; email: string; avatarUrl: string; role: string }): Observable<ProfileResponse> {
-    return this.http.put<ProfileResponse>(`${environment.apiUrl}/auth/profile`, profile).pipe(
+    return this.http.put<ProfileResponse>(`${environment.apiUrl}/api/auth/profile`, profile).pipe(
       tap(updatedProfile => {
         // Broadcast profile/role update across the app memory
         this.userService.setUser(updatedProfile);
