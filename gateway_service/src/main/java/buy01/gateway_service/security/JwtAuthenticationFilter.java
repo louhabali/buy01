@@ -33,7 +33,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
-
+        if (HttpMethod.OPTIONS.equals(method)) {
+        return chain.filter(exchange);
+        }
         // Public endpoints
         if (path.startsWith("/auth/login") ||
                 path.startsWith("/auth/register") ||
