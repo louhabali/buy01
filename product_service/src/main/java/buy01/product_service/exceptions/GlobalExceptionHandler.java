@@ -1,10 +1,13 @@
 package buy01.product_service.exceptions;
 
 import org.apache.coyote.BadRequestException;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -73,6 +76,34 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ex.getStatusCode())
                 .body(Map.of("errorMessage", ex.getReason() != null ? ex.getReason() : "An error occurred"));
+    }
+     @ExceptionHandler(TypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleTypeMismatch(TypeMismatchException ex) {
+
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "Bad Request");
+        body.put("message", "Invalid value for one of the request parameters.");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Map<String, String>> handleBindException(BindException ex) {
+
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "Bad Request");
+        body.put("message", "binding error: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(ConversionFailedException.class)
+    public ResponseEntity<Map<String, String>> handleConversionFailed(ConversionFailedException ex) {
+
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "Bad Request");
+        body.put("message", "Failed to convert request parameter to the required type.");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
     // 403
     @ExceptionHandler(ForbiddenException.class)
