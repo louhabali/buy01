@@ -25,10 +25,9 @@ public class ProductService {
     private final MediaClient mediaClient;
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
-            "image/jpeg", "image/png", "image/webp", "image/gif");
+            "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/x-avif");
     private static final long MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
     private static final int MAX_IMAGES_COUNT = 5;
-    
 
     public List<Product> getAllProducts() {
         return repository.findAll();
@@ -134,7 +133,6 @@ public class ProductService {
     private void verifyOwnership(Product product, String userId) {
         validateUserData(userId);
 
-        
         boolean isOwner = product.getUserId() != null && product.getUserId().equals(userId);
 
         if (!isOwner) {
@@ -210,7 +208,7 @@ public class ProductService {
             if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Invalid file type for '" + file.getOriginalFilename()
-                                + "'. Only JPG, PNG, WEBP, and GIF are allowed.");
+                                + "'. Only JPG, PNG, WEBP, GIF, and AVIF are allowed.");
             }
 
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -221,6 +219,6 @@ public class ProductService {
     }
 
     private boolean hasValidImages(MultipartFile[] images) {
-        return images != null && images.length > 0 && !images[0].isEmpty() ;
+        return images != null && images.length > 0 && !images[0].isEmpty();
     }
 }

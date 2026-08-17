@@ -71,13 +71,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("The requested route " + ex.getRequestURL() + " was not found.");
     }
- @ExceptionHandler(ResponseStatusException.class)
+
+    @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity
                 .status(ex.getStatusCode())
                 .body(Map.of("errorMessage", ex.getReason() != null ? ex.getReason() : "An error occurred"));
     }
-     @ExceptionHandler(TypeMismatchException.class)
+
+    @ExceptionHandler(TypeMismatchException.class)
     public ResponseEntity<Map<String, String>> handleTypeMismatch(TypeMismatchException ex) {
 
         Map<String, String> body = new HashMap<>();
@@ -105,6 +107,9 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
+
+
     // 403
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<Map<String, String>> handleForbidden(ForbiddenException ex) {

@@ -101,6 +101,9 @@ public class UserService {
         if (profile.getUsername() == null || profile.getUsername().trim().isEmpty()) {
             throw new BadRequestException("Username cannot be empty");
         }
+        if (!profile.getUsername().matches("^[a-zA-Z0-9]+$")) {
+            throw new BadRequestException("Username must contain only letters and digits");
+        }
         if (profile.getEmail() == null || profile.getEmail().trim().isEmpty()) {
             throw new BadRequestException("Email cannot be empty");
         }

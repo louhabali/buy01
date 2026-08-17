@@ -72,19 +72,30 @@ public class MediaService {
     }
 
     private void validateImage(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            throw new IllegalArgumentException("Image file cannot be empty");
-        }
-
-        String contentType = image.getContentType();
-        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
-            throw new IllegalArgumentException("Only JPEG, PNG, or WEBP images are allowed");
-        }
-
-        if (image.getSize() > MAX_SIZE) {
-            throw new IllegalArgumentException("Image size must not exceed 2MB");
-        }
+    if (image == null || image.isEmpty()) {
+        throw new IllegalArgumentException("Image file cannot be empty");
     }
+
+    String originalFilename = image.getOriginalFilename();
+    String fileExtension = "";
+    if (originalFilename != null && originalFilename.contains(".")) {
+        fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+    }
+
+    String contentType = image.getContentType() != null ? image.getContentType().toLowerCase() : "";
+
+    // Check if either the MIME type matches OR it has a valid image extension
+    boolean isValidMimeType = ALLOWED_MIME_TYPES.contains(contentType);
+    boolean isValidExtension = List.of(".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif").contains(fileExtension);
+
+    if (!isValidMimeType && !isValidExtension) {
+        throw new IllegalArgumentException("Invalid image format. Allowed formats: JPEG, PNG, WEBP, GIF, AVIF");
+    }
+
+    if (image.getSize() > MAX_SIZE) {
+        throw new IllegalArgumentException("Image size must not exceed 2MB");
+    }
+}
 
     public boolean deleteImage(String fileName) {
         try {
